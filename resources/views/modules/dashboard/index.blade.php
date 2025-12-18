@@ -7,11 +7,11 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <x-modules.dashboard.panel>
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     Listo. Estás logueado y ya tenemos un dashboard modular.
                 </div>
-            </x-modules.dashboard.panel>
+            </div>
         </div>
     </div>
 </x-app-layout>
