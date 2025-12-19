@@ -20,4 +20,9 @@ class Account extends Model
     protected $casts = [
         'last_synced_at' => 'datetime',
     ];
+
+    public function cashMovements()
+    {
+        return $this->hasMany(CashMovement::class);
+    }
 }

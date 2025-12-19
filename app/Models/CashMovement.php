@@ -16,9 +16,15 @@ class CashMovement extends Model
         'amount_cop',
         'balance_cop',
         'reference',
+        'account_id',
     ];
 
     protected $casts = [
         'date' => 'date',
     ];
+
+    public function account()
+    {
+        return $this->belongsTo(Account::class);
+    }
 }

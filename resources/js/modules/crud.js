@@ -73,6 +73,10 @@ const attachModalListeners = () => {
                 document.getElementById('movement-description').value = movement.description;
                 document.getElementById('movement-amount').value = movement.amount_cop;
                 document.getElementById('movement-reference').value = movement.reference || '';
+                const accountSelect = document.getElementById('movement-account');
+                if (accountSelect) {
+                    accountSelect.value = movement.account_id || '';
+                }
             }
 
             if (target === 'account-edit' && btn.dataset.account) {

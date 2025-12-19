@@ -33,10 +33,11 @@
                 <p class="text-sm text-gray-500">Saldo recalculado automáticamente</p>
             </div>
 
-            <div class="grid grid-cols-7 text-xs font-semibold text-gray-500 pb-2">
+            <div class="grid grid-cols-8 text-xs font-semibold text-gray-500 pb-2">
                 <span>Fecha</span>
                 <span>Tipo</span>
                 <span>Descripción</span>
+                <span>Cuenta</span>
                 <span class="text-right">Monto COP</span>
                 <span class="text-right">Saldo COP</span>
                 <span>Referencia</span>
@@ -44,7 +45,7 @@
             </div>
             <div class="divide-y divide-gray-100">
                 @forelse ($movements as $movement)
-                    <div class="grid grid-cols-7 py-3 text-sm items-center">
+                    <div class="grid grid-cols-8 py-3 text-sm items-center">
                         <span class="text-gray-700">{{ optional($movement->date)->format('d/m/Y') }}</span>
                         <span>
                             <span class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $movement->type === 'ingreso' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
@@ -52,6 +53,7 @@
                             </span>
                         </span>
                         <span class="text-gray-700">{{ $movement->description }}</span>
+                        <span class="text-gray-700">{{ optional($movement->account)->name ?? 'Sin cuenta' }}</span>
                         <span class="text-right font-semibold {{ $movement->type === 'egreso' ? 'text-red-600' : 'text-gray-900' }}">
                             $ {{ number_format($movement->amount_cop, 0, ',', '.') }}
                         </span>
@@ -122,6 +124,12 @@
             <x-text-input name="description" placeholder="Descripción" class="w-full" required />
             <x-text-input name="amount_cop" type="number" step="0.01" placeholder="Monto COP" class="w-full" required />
             <x-text-input name="reference" placeholder="Referencia (opcional)" class="w-full" />
+            <select name="account_id" class="border rounded-md px-3 py-2 w-full">
+                <option value="">Sin cuenta</option>
+                @foreach ($accounts as $account)
+                    <option value="{{ $account->id }}">{{ $account->name }} ({{ $account->type }})</option>
+                @endforeach
+            </select>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
                 <button type="submit" class="px-4 py-2 text-sm bg-green-600 text-white rounded-md">Guardar</button>
@@ -146,6 +154,12 @@
             <x-text-input name="description" id="movement-description" placeholder="Descripción" class="w-full" required />
             <x-text-input name="amount_cop" id="movement-amount" type="number" step="0.01" placeholder="Monto COP" class="w-full" required />
             <x-text-input name="reference" id="movement-reference" placeholder="Referencia (opcional)" class="w-full" />
+            <select name="account_id" id="movement-account" class="border rounded-md px-3 py-2 w-full">
+                <option value="">Sin cuenta</option>
+                @foreach ($accounts as $account)
+                    <option value="{{ $account->id }}">{{ $account->name }} ({{ $account->type }})</option>
+                @endforeach
+            </select>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
                 <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md">Actualizar</button>

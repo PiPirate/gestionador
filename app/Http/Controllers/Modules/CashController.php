@@ -13,7 +13,7 @@ class CashController extends Controller
 {
     public function index(Request $request)
     {
-        $movementsQuery = CashMovement::orderByDesc('date')->orderByDesc('id');
+        $movementsQuery = CashMovement::with('account')->orderByDesc('date')->orderByDesc('id');
         $movements = $movementsQuery->get();
 
         $monthStart = Carbon::now()->startOfMonth();
@@ -40,6 +40,7 @@ class CashController extends Controller
             'description' => 'required|string|max:255',
             'amount_cop' => 'required|numeric',
             'reference' => 'nullable|string|max:255',
+            'account_id' => 'nullable|exists:accounts,id',
         ]);
 
         $movement = CashMovement::create([
@@ -48,6 +49,7 @@ class CashController extends Controller
             'description' => $data['description'],
             'amount_cop' => $data['amount_cop'],
             'reference' => $data['reference'] ?? null,
+            'account_id' => $data['account_id'] ?? null,
         ]);
 
         $this->recalculateBalances();
@@ -64,6 +66,7 @@ class CashController extends Controller
             'description' => 'required|string|max:255',
             'amount_cop' => 'required|numeric',
             'reference' => 'nullable|string|max:255',
+            'account_id' => 'nullable|exists:accounts,id',
         ]);
 
         $movement->update($data);
@@ -136,12 +139,20 @@ class CashController extends Controller
 
     private function recalculateBalances(): void
     {
-        $balance = 0;
-        CashMovement::orderBy('date')->orderBy('id')->each(function (CashMovement $movement) use (&$balance) {
+        $balances = [];
+        CashMovement::orderBy('account_id')->orderBy('date')->orderBy('id')->each(function (CashMovement $movement) use (&$balances) {
+            $key = $movement->account_id ?? 'global';
             $sign = $movement->type === 'egreso' ? -1 : 1;
-            $balance += $movement->amount_cop * $sign;
-            $movement->balance_cop = $balance;
+            $balances[$key] = ($balances[$key] ?? 0) + ($movement->amount_cop * $sign);
+            $movement->balance_cop = $balances[$key];
             $movement->save();
+        });
+
+        Account::each(function (Account $account) use ($balances) {
+            $account->update([
+                'balance_cop' => $balances[$account->id] ?? 0,
+                'last_synced_at' => now(),
+            ]);
         });
     }
 }
