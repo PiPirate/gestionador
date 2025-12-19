@@ -1,3 +1,4 @@
+{{-- Evitar declaraciones "use" en Blade para prevenir errores de sintaxis --}}
 <x-app-layout>
     @php
         use App\Support\Currency;
