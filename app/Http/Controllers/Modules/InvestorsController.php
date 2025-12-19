@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
 use App\Models\Investor;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 
 class InvestorsController extends Controller
@@ -28,5 +29,41 @@ class InvestorsController extends Controller
         $investors = $query->orderBy('name')->get();
 
         return view('modules.investors.index', compact('investors'));
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'document' => 'required|string|max:255',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:255',
+            'capital' => 'nullable|numeric',
+            'monthly_rate' => 'nullable|numeric',
+            'status' => 'required|string',
+        ]);
+
+        $investor = Investor::create($data);
+        AuditLogger::log('Crear inversor', $investor, $data);
+
+        return redirect()->route('investors.index')->with('status', 'Inversor creado');
+    }
+
+    public function update(Request $request, Investor $investor)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'document' => 'required|string|max:255',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:255',
+            'capital' => 'nullable|numeric',
+            'monthly_rate' => 'nullable|numeric',
+            'status' => 'required|string',
+        ]);
+
+        $investor->update($data);
+        AuditLogger::log('Actualizar inversor', $investor, $data);
+
+        return redirect()->route('investors.index')->with('status', 'Inversor actualizado');
     }
 }

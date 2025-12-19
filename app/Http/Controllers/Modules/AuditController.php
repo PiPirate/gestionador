@@ -3,17 +3,18 @@
 namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
+use App\Models\AuditLog;
 
 class AuditController extends Controller
 {
     public function index()
     {
-        $logs = DB::table('activity_log')->orderByDesc('created_at')->limit(20)->get()->map(function ($row) {
+        $logs = AuditLog::with('user')->orderByDesc('created_at')->limit(50)->get()->map(function ($log) {
             return [
-                'action' => $row->description ?? 'Evento',
-                'user' => $row->causer_name ?? 'Sistema',
-                'time' => $row->created_at,
+                'action' => $log->action,
+                'user' => $log->user?->name ?? 'Sistema',
+                'time' => $log->created_at,
+                'model' => class_basename($log->model_type ?? ''),
             ];
         });
 

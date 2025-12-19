@@ -7,6 +7,7 @@ use App\Models\Investment;
 use App\Models\Investor;
 use App\Models\Liquidation;
 use App\Models\Transaction;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -14,15 +15,15 @@ class DashboardController extends Controller
     {
         $capitalUsd = Investment::sum('amount_usd');
         $capitalCop = Investment::sum('gains_cop') + Transaction::where('type', 'venta')->sum('amount_cop');
-        $monthlyGain = 8450000; // fallback demo value
+        $monthlyGain = Transaction::sum('profit_cop');
 
         $metrics = [
             'capital_usd' => $capitalUsd,
             'capital_cop' => $capitalCop,
             'monthly_gain' => $monthlyGain,
             'investors_active' => Investor::count(),
-            'avg_investment' => Investment::avg('amount_usd'),
-            'avg_return' => Investment::avg('monthly_rate'),
+            'avg_investment' => Investment::avg('amount_usd') ?? 0,
+            'avg_return' => Investment::avg('monthly_rate') ?? 0,
             'operations_month' => Transaction::count(),
         ];
 
@@ -35,12 +36,14 @@ class DashboardController extends Controller
                 'total' => $pendingTotal,
             ],
             'available_capital' => [
-                'usd' => 15,
-                'estimated_margin' => 3850000,
+                'usd' => max(0, $capitalUsd - Investment::where('status', 'activa')->sum('amount_usd')),
+                'estimated_margin' => $monthlyGain,
             ],
-            'investor_growth' => 3,
+            'investor_growth' => max(0, Investor::whereMonth('created_at', now()->month)->count()),
         ];
 
-        return view('modules.dashboard.index', compact('metrics', 'cards'));
+        $users = User::orderBy('name')->get();
+
+        return view('modules.dashboard.index', compact('metrics', 'cards', 'users'));
     }
 }

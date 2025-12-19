@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\User;
+use App\Services\AuditLogger;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class SettingsController extends Controller
 {
@@ -20,23 +24,89 @@ class SettingsController extends Controller
         ];
 
         $security = [
-            'two_factor' => true,
-            'timeout' => '30 minutos',
+            'two_factor' => (bool) ($settings['two_factor'] ?? false),
+            'timeout' => $settings['timeout'] ?? '30',
             'audit_log' => true,
-            'attempts' => 5,
+            'attempts' => $settings['attempts'] ?? 5,
         ];
 
         $notifications = [
-            'liquidations_reminder' => '3 días antes',
-            'new_operation' => true,
+            'liquidations_reminder' => $settings['liquidations_reminder'] ?? '3',
+            'new_operation' => (bool) ($settings['notify_new_operation'] ?? true),
         ];
 
-        $users = [
-            ['name' => 'María Andrade', 'role' => 'Administrador', 'email' => 'maria@dolarmanager.com', 'last_access' => '15/03/2024 14:30', 'status' => 'Activo'],
-            ['name' => 'Carlos Ríos', 'role' => 'Operador', 'email' => 'carlos@dolarmanager.com', 'last_access' => '15/03/2024 11:15', 'status' => 'Activo'],
-            ['name' => 'Laura Martínez', 'role' => 'Consulta', 'email' => 'laura@dolarmanager.com', 'last_access' => '14/03/2024 09:20', 'status' => 'Activo'],
-        ];
+        $users = User::orderBy('name')->get();
 
         return view('modules.settings.index', compact('rates', 'security', 'notifications', 'users'));
+    }
+
+    public function updateRates(Request $request)
+    {
+        $data = $request->validate([
+            'rate_buy' => 'required|numeric',
+            'rate_sell' => 'required|numeric',
+            'min_margin' => 'required|numeric',
+            'min_return' => 'required|numeric',
+            'max_return' => 'required|numeric',
+        ]);
+
+        foreach ($data as $key => $value) {
+            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+        }
+
+        AuditLogger::log('Actualizar tasas', null, $data);
+
+        return redirect()->route('settings.index')->with('status', 'Tasas actualizadas');
+    }
+
+    public function storeUser(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
+            'role' => 'required|string',
+            'status' => 'required|string',
+        ]);
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role' => $data['role'],
+            'status' => $data['status'],
+            'last_access_at' => now(),
+        ]);
+
+        AuditLogger::log('Crear usuario', $user, $data);
+
+        return redirect()->route('settings.index')->with('status', 'Usuario creado');
+    }
+
+    public function updateUser(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8',
+            'role' => 'required|string',
+            'status' => 'required|string',
+        ]);
+
+        $changes = [
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'role' => $data['role'],
+            'status' => $data['status'],
+        ];
+
+        if (!empty($data['password'])) {
+            $changes['password'] = Hash::make($data['password']);
+        }
+
+        $user->update($changes);
+        AuditLogger::log('Actualizar usuario', $user, $changes);
+
+        return redirect()->route('settings.index')->with('status', 'Usuario actualizado');
     }
 }
