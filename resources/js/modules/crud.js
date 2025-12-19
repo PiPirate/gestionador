@@ -71,8 +71,7 @@ const attachModalListeners = () => {
                 document.getElementById('movement-date').value = movement.date;
                 document.getElementById('movement-type').value = movement.type;
                 document.getElementById('movement-description').value = movement.description;
-                document.getElementById('movement-amount-cop').value = movement.amount_cop;
-                document.getElementById('movement-amount-usd').value = movement.amount_usd;
+                document.getElementById('movement-amount').value = movement.amount_cop;
                 document.getElementById('movement-reference').value = movement.reference || '';
                 const accountSelect = document.getElementById('movement-account');
                 if (accountSelect) {

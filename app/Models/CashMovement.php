@@ -14,9 +14,7 @@ class CashMovement extends Model
         'type',
         'description',
         'amount_cop',
-        'amount_usd',
         'balance_cop',
-        'balance_usd',
         'reference',
         'account_id',
     ];
