@@ -18,23 +18,13 @@ class CashController extends Controller
 
         $monthStart = Carbon::now()->startOfMonth();
 
-        $incomeCop = (clone $movementsQuery)->where('type', 'ingreso')->where('date', '>=', $monthStart)->sum('amount_cop');
-        $expenseCop = (clone $movementsQuery)->where('type', 'egreso')->where('date', '>=', $monthStart)->sum('amount_cop');
-
-        $incomeUsd = (clone $movementsQuery)->where('type', 'ingreso')->where('date', '>=', $monthStart)->sum('amount_usd');
-        $expenseUsd = (clone $movementsQuery)->where('type', 'egreso')->where('date', '>=', $monthStart)->sum('amount_usd');
+        $income = (clone $movementsQuery)->where('type', 'ingreso')->where('date', '>=', $monthStart)->sum('amount_cop');
+        $expenses = (clone $movementsQuery)->where('type', 'egreso')->where('date', '>=', $monthStart)->sum('amount_cop');
 
         $summary = [
-            'cop' => [
-                'income' => $incomeCop,
-                'expense' => $expenseCop,
-                'net' => $incomeCop - $expenseCop,
-            ],
-            'usd' => [
-                'income' => $incomeUsd,
-                'expense' => $expenseUsd,
-                'net' => $incomeUsd - $expenseUsd,
-            ],
+            'income' => $income,
+            'expenses' => $expenses,
+            'net' => $income - $expenses,
         ];
 
         $accounts = Account::orderBy('name')->get();
@@ -48,22 +38,16 @@ class CashController extends Controller
             'date' => 'required|date',
             'type' => 'required|in:ingreso,egreso',
             'description' => 'required|string|max:255',
-            'amount_cop' => 'nullable|numeric',
-            'amount_usd' => 'nullable|numeric',
+            'amount_cop' => 'required|numeric',
             'reference' => 'nullable|string|max:255',
             'account_id' => 'nullable|exists:accounts,id',
         ]);
-
-        if (empty($data['amount_cop']) && empty($data['amount_usd'])) {
-            return back()->withErrors(['amount_cop' => 'Debes registrar un monto en COP o en USD'])->withInput();
-        }
 
         $movement = CashMovement::create([
             'date' => $data['date'],
             'type' => $data['type'],
             'description' => $data['description'],
-            'amount_cop' => $data['amount_cop'] ?? 0,
-            'amount_usd' => $data['amount_usd'] ?? 0,
+            'amount_cop' => $data['amount_cop'],
             'reference' => $data['reference'] ?? null,
             'account_id' => $data['account_id'] ?? null,
         ]);
@@ -80,25 +64,12 @@ class CashController extends Controller
             'date' => 'required|date',
             'type' => 'required|in:ingreso,egreso',
             'description' => 'required|string|max:255',
-            'amount_cop' => 'nullable|numeric',
-            'amount_usd' => 'nullable|numeric',
+            'amount_cop' => 'required|numeric',
             'reference' => 'nullable|string|max:255',
             'account_id' => 'nullable|exists:accounts,id',
         ]);
 
-        if (empty($data['amount_cop']) && empty($data['amount_usd'])) {
-            return back()->withErrors(['amount_cop' => 'Debes registrar un monto en COP o en USD'])->withInput();
-        }
-
-        $movement->update([
-            'date' => $data['date'],
-            'type' => $data['type'],
-            'description' => $data['description'],
-            'amount_cop' => $data['amount_cop'] ?? 0,
-            'amount_usd' => $data['amount_usd'] ?? 0,
-            'reference' => $data['reference'] ?? null,
-            'account_id' => $data['account_id'] ?? null,
-        ]);
+        $movement->update($data);
         $this->recalculateBalances();
         AuditLogger::log('Actualizar movimiento de caja', $movement, $data);
 
@@ -168,25 +139,18 @@ class CashController extends Controller
 
     private function recalculateBalances(): void
     {
-        $balancesCop = [];
-        $balancesUsd = [];
-
-        CashMovement::orderBy('account_id')->orderBy('date')->orderBy('id')->each(function (CashMovement $movement) use (&$balancesCop, &$balancesUsd) {
+        $balances = [];
+        CashMovement::orderBy('account_id')->orderBy('date')->orderBy('id')->each(function (CashMovement $movement) use (&$balances) {
             $key = $movement->account_id ?? 'global';
             $sign = $movement->type === 'egreso' ? -1 : 1;
-
-            $balancesCop[$key] = ($balancesCop[$key] ?? 0) + (($movement->amount_cop ?? 0) * $sign);
-            $balancesUsd[$key] = ($balancesUsd[$key] ?? 0) + (($movement->amount_usd ?? 0) * $sign);
-
-            $movement->balance_cop = $balancesCop[$key];
-            $movement->balance_usd = $balancesUsd[$key];
+            $balances[$key] = ($balances[$key] ?? 0) + ($movement->amount_cop * $sign);
+            $movement->balance_cop = $balances[$key];
             $movement->save();
         });
 
-        Account::each(function (Account $account) use ($balancesCop, $balancesUsd) {
+        Account::each(function (Account $account) use ($balances) {
             $account->update([
-                'balance_cop' => $balancesCop[$account->id] ?? 0,
-                'balance_usd' => $balancesUsd[$account->id] ?? 0,
+                'balance_cop' => $balances[$account->id] ?? 0,
                 'last_synced_at' => now(),
             ]);
         });

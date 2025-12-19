@@ -20,8 +20,6 @@
                     $rateSell = \App\Models\Setting::where('key', 'rate_sell')->value('value') ?? 0;
                     $trmToday = \App\Models\Setting::where('key', 'trm_today')->value('value') ?? 0;
                 @endphp
-                <span class="text-sm text-green-700 font-semibold">TRM Hoy: $ {{ number_format($trmToday, 0, ',', '.') }} COP</span>
-                <span class="text-sm text-blue-700 font-semibold">Nuestra tasa: $ {{ number_format($rateBuy, 0, ',', '.') }} compra / $ {{ number_format($rateSell, 0, ',', '.') }} venta</span>
             </div>
 
             <div class="flex items-center gap-3">

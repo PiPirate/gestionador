@@ -53,8 +53,6 @@ class ReportsController extends Controller
             'cash' => [
                 'income_cop' => (clone $cashMovements)->where('type', 'ingreso')->sum('amount_cop'),
                 'expense_cop' => (clone $cashMovements)->where('type', 'egreso')->sum('amount_cop'),
-                'income_usd' => (clone $cashMovements)->where('type', 'ingreso')->sum('amount_usd'),
-                'expense_usd' => (clone $cashMovements)->where('type', 'egreso')->sum('amount_usd'),
             ],
         ];
 
