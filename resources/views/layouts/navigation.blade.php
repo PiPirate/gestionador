@@ -10,7 +10,7 @@
                 </button>
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2 font-semibold text-blue-700">
                     <x-application-logo class="block h-6 w-auto fill-current text-blue-700" />
-                    <span>DolarManager</span>
+                    <span>Gestionador</span>
                 </a>
             </div>
 
