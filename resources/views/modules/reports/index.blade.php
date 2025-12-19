@@ -42,9 +42,9 @@
                 <p class="text-xs text-green-700">Pagado: $ {{ number_format($metrics['liquidations']['paid_cop'], 0, ',', '.') }}</p>
             </x-modules.card>
             <x-modules.card title="Caja">
-                <p class="text-3xl font-bold text-gray-900">$ {{ number_format($metrics['cash']['income_cop'] - $metrics['cash']['expense_cop'], 0, ',', '.') }}</p>
-                <p class="text-xs text-green-700">Ingresos: $ {{ number_format($metrics['cash']['income_cop'], 0, ',', '.') }}</p>
-                <p class="text-xs text-red-600">Egresos: $ {{ number_format($metrics['cash']['expense_cop'], 0, ',', '.') }}</p>
+                <p class="text-3xl font-bold text-gray-900">$ {{ number_format($metrics['cash']['income_cop'] - $metrics['cash']['expense_cop'], 0, ',', '.') }} / US$ {{ number_format($metrics['cash']['income_usd'] - $metrics['cash']['expense_usd'], 2) }}</p>
+                <p class="text-xs text-green-700">Ingresos: $ {{ number_format($metrics['cash']['income_cop'], 0, ',', '.') }} | US$ {{ number_format($metrics['cash']['income_usd'], 2) }}</p>
+                <p class="text-xs text-red-600">Egresos: $ {{ number_format($metrics['cash']['expense_cop'], 0, ',', '.') }} | US$ {{ number_format($metrics['cash']['expense_usd'], 2) }}</p>
             </x-modules.card>
         </div>
 

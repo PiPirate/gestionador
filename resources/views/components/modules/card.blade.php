@@ -1,4 +1,4 @@
-<div {{ $attributes->merge(['class' => 'bg-white rounded-xl border border-gray-100 shadow-sm']) }}>
+<div {{ $attributes->merge(['class' => 'bg-white/80 backdrop-blur rounded-2xl border border-gray-100 shadow-lg shadow-gray-100']) }}>
     <div class="p-4 sm:p-5">
         @isset($title)
             <div class="flex items-center justify-between mb-2">
