@@ -63,6 +63,40 @@ const attachModalListeners = () => {
                 document.getElementById('tx-profit').value = tx.profit_cop || '';
                 document.getElementById('tx-date').value = tx.transacted_at;
             }
+
+            if (target === 'movement-edit' && btn.dataset.movement) {
+                const movement = JSON.parse(btn.dataset.movement);
+                const form = document.getElementById('movement-edit-form');
+                form.action = `/cash/movements/${movement.id}`;
+                document.getElementById('movement-date').value = movement.date;
+                document.getElementById('movement-type').value = movement.type;
+                document.getElementById('movement-description').value = movement.description;
+                document.getElementById('movement-amount').value = movement.amount_cop;
+                document.getElementById('movement-reference').value = movement.reference || '';
+            }
+
+            if (target === 'account-edit' && btn.dataset.account) {
+                const account = JSON.parse(btn.dataset.account);
+                const form = document.getElementById('account-edit-form');
+                form.action = `/cash/accounts/${account.id}`;
+                document.getElementById('account-name').value = account.name;
+                document.getElementById('account-type').value = account.type;
+                document.getElementById('account-balance-cop').value = account.balance_cop;
+                document.getElementById('account-balance-usd').value = account.balance_usd;
+            }
+
+            if (target === 'liquidation-edit' && btn.dataset.liquidation) {
+                const liq = JSON.parse(btn.dataset.liquidation);
+                const form = document.getElementById('liquidation-edit-form');
+                form.action = `/liquidations/${liq.id}`;
+                document.getElementById('liquidation-investor').value = liq.investor_id;
+                document.getElementById('liquidation-rate').value = liq.monthly_rate;
+                document.getElementById('liquidation-amount').value = liq.amount_usd;
+                document.getElementById('liquidation-start').value = liq.period_start;
+                document.getElementById('liquidation-end').value = liq.period_end;
+                document.getElementById('liquidation-due').value = liq.due_date || '';
+                document.getElementById('liquidation-status').value = liq.status;
+            }
         });
     });
 
