@@ -11,7 +11,9 @@ class Currency
 
     public static function current(): string
     {
-        return session('currency', self::USD);
+        $current = strtolower((string) session('currency', self::USD));
+
+        return in_array($current, [self::USD, self::COP], true) ? $current : self::USD;
     }
 
     public static function switch(string $currency): void
@@ -32,9 +34,10 @@ class Currency
         return $cachedRate > 0 ? $cachedRate : 1;
     }
 
-    public static function format(float $amount, string $baseCurrency = self::USD): string
+    public static function format(float|int|string|null $amount, string $baseCurrency = self::USD): string
     {
-        [$value, $targetCurrency] = self::convert($amount, $baseCurrency, self::current());
+        $normalized = is_numeric($amount) ? (float) $amount : 0.0;
+        [$value, $targetCurrency] = self::convert($normalized, $baseCurrency, self::current());
 
         if ($targetCurrency === self::USD) {
             return 'US$' . number_format($value, 2);
