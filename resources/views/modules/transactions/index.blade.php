@@ -10,44 +10,40 @@
                 <button data-modal-target="transaction-create" class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">➕ Nueva Transacción</button>
             </div>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <x-modules.card title="USD Comprados">
-                <div class="text-2xl font-bold text-gray-900">US${{ number_format($summary['bought'], 2) }}</div>
+                <div class="text-2xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['bought'], 'usd') }}</div>
             </x-modules.card>
             <x-modules.card title="USD Vendidos">
-                <div class="text-2xl font-bold text-gray-900">US${{ number_format($summary['sold'], 2) }}</div>
+                <div class="text-2xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['sold'], 'usd') }}</div>
             </x-modules.card>
             <x-modules.card title="Ganancia Neta">
-                <div class="text-2xl font-bold text-gray-900">${{ number_format($summary['net_profit'], 0, ',', '.') }}</div>
+                <div class="text-2xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['net_profit'], 'cop') }}</div>
             </x-modules.card>
             <x-modules.card title="Inventario">
-                <div class="text-2xl font-bold text-gray-900">US${{ number_format($summary['inventory'], 2) }}</div>
+                <div class="text-2xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['inventory'], 'usd') }}</div>
             </x-modules.card>
         </div>
-
         <x-modules.card>
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-semibold text-gray-900">Historial</h3>
                 <p class="text-sm text-gray-500">{{ $history->count() }} movimientos</p>
             </div>
-
             <div class="grid grid-cols-7 text-xs font-semibold text-gray-500 pb-2">
                 <span>Referencia</span>
                 <span>Tipo</span>
-                <span>Monto USD</span>
+                <span>Monto ({{ strtoupper(\App\Support\Currency::current()) }})</span>
                 <span>Tasa</span>
                 <span>Contraparte</span>
                 <span>Fecha</span>
                 <span class="text-right">Acciones</span>
             </div>
-
             <div class="divide-y divide-gray-100">
                 @forelse ($history as $tx)
                     <div class="grid grid-cols-7 py-3 text-sm items-center">
                         <span class="font-semibold text-gray-900">{{ $tx->reference ?? 'N/A' }}</span>
                         <span class="text-gray-700 capitalize">{{ $tx->type }}</span>
-                        <span class="text-gray-900 font-semibold">US${{ number_format($tx->amount_usd, 2) }}</span>
+                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($tx->amount_usd, 'usd') }}</span>
                         <span class="text-gray-700">${{ number_format($tx->rate, 2) }}</span>
                         <span class="text-gray-700">{{ $tx->counterparty }}</span>
                         <span class="text-gray-700">{{ optional($tx->transacted_at)->format('d/m/Y') }}</span>
@@ -66,7 +62,6 @@
             </div>
         </x-modules.card>
     </x-modules.shell>
-
     <div id="modal-transaction-create" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
             <h3 class="text-lg font-semibold mb-4">Nueva Transacción</h3>
@@ -99,7 +94,6 @@
             </form>
         </div>
     </div>
-
     <div id="modal-transaction-edit" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
             <h3 class="text-lg font-semibold mb-4">Editar Transacción</h3>

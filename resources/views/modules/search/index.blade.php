@@ -11,7 +11,6 @@
                 <button class="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-blue-700">Buscar</button>
             </form>
         </div>
-
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <x-modules.card title="Inversores">
                 @forelse ($investors as $investor)
@@ -23,18 +22,16 @@
                     <p class="text-sm text-gray-600">Sin resultados.</p>
                 @endforelse
             </x-modules.card>
-
             <x-modules.card title="Inversiones">
                 @forelse ($investments as $inv)
                     <div class="py-2 border-b border-gray-100 last:border-0">
                         <p class="font-semibold text-gray-900">{{ $inv->code }}</p>
-                        <p class="text-xs text-gray-500">{{ $inv->investor->name ?? '—' }} · US${{ $inv->amount_usd }}</p>
+                        <p class="text-xs text-gray-500">{{ $inv->investor->name ?? '—' }} · {{ \App\Support\Currency::format($inv->amount_usd, 'usd') }}</p>
                     </div>
                 @empty
                     <p class="text-sm text-gray-600">Sin resultados.</p>
                 @endforelse
             </x-modules.card>
-
             <x-modules.card title="Transacciones">
                 @forelse ($transactions as $tx)
                     <div class="py-2 border-b border-gray-100 last:border-0">
