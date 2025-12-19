@@ -1,7 +1,5 @@
 <x-app-layout>
-    @php
-        use App\Support\Currency;
-    @endphp
+
     <x-modules.shell>
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -14,10 +12,10 @@
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <x-modules.card title="USD Comprados">
+            <x-modules.card title="Comprados">
                 <div class="text-2xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['bought'], 'usd') }}</div>
             </x-modules.card>
-            <x-modules.card title="USD Vendidos">
+            <x-modules.card title="Vendidos">
                 <div class="text-2xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['sold'], 'usd') }}</div>
             </x-modules.card>
             <x-modules.card title="Ganancia Neta">

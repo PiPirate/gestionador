@@ -1,7 +1,4 @@
 <x-app-layout>
-    @php
-        use App\Support\Currency;
-    @endphp
     <x-modules.shell>
         <div class="flex items-center justify-between mb-4">
             <div>
