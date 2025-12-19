@@ -3,16 +3,19 @@
 namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class AuditController extends Controller
 {
     public function index()
     {
-        $logs = [
-            ['action' => 'Inicio de sesión', 'user' => 'María Andrade', 'time' => '15/03/2024 14:30'],
-            ['action' => 'Actualizó tasa de compra', 'user' => 'Carlos Ríos', 'time' => '15/03/2024 12:05'],
-            ['action' => 'Creó nueva inversión', 'user' => 'Laura Martínez', 'time' => '14/03/2024 09:20'],
-        ];
+        $logs = DB::table('activity_log')->orderByDesc('created_at')->limit(20)->get()->map(function ($row) {
+            return [
+                'action' => $row->description ?? 'Evento',
+                'user' => $row->causer_name ?? 'Sistema',
+                'time' => $row->created_at,
+            ];
+        });
 
         return view('modules.audit.index', compact('logs'));
     }

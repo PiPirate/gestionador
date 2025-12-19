@@ -12,8 +12,6 @@
     <x-modules.sidebar />
 
     <div class="flex-1 flex flex-col min-h-screen">
-        <x-modules.topbar />
-
         <main class="flex-1 p-6 space-y-6">
             {{ $slot }}
         </main>

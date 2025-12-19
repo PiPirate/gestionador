@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 
 class SettingsController extends Controller
 {
     public function index()
     {
+        $settings = Setting::pluck('value', 'key');
+
         $rates = [
-            'buy' => 3820,
-            'sell' => 3880,
-            'min_margin' => 50,
-            'min_return' => 3.5,
-            'max_return' => 5.0,
+            'buy' => $settings['rate_buy'] ?? 0,
+            'sell' => $settings['rate_sell'] ?? 0,
+            'min_margin' => $settings['min_margin'] ?? 0,
+            'min_return' => $settings['min_return'] ?? 0,
+            'max_return' => $settings['max_return'] ?? 0,
         ];
 
         $security = [

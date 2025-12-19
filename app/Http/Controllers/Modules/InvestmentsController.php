@@ -3,49 +3,35 @@
 namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
+use App\Models\Investment;
+use Illuminate\Http\Request;
 
 class InvestmentsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $summary = [
-            'total_usd' => 19,
-            'avg_return' => 4.3,
-            'accumulated' => 7697500,
-            'next_liquidations' => 5,
-        ];
+        $query = Investment::with('investor');
 
-        $investments = [
-            [
-                'code' => 'INV-2024-001',
-                'investor' => 'Juan Pérez',
-                'amount_usd' => 5,
-                'monthly' => 4.5,
-                'start' => '15/02/2024',
-                'gains' => 2025000,
-                'next' => '15/04/2024',
-                'status' => 'Activa',
-            ],
-            [
-                'code' => 'INV-2024-002',
-                'investor' => 'Ana Gómez',
-                'amount_usd' => 4,
-                'monthly' => 4.0,
-                'start' => '22/09/2024',
-                'gains' => 1120000,
-                'next' => '22/04/2024',
-                'status' => 'Activa',
-            ],
-            [
-                'code' => 'INV-2024-003',
-                'investor' => 'Sofía Ramírez',
-                'amount_usd' => 8,
-                'monthly' => 4.8,
-                'start' => '10/02/2024',
-                'gains' => 1536000,
-                'next' => '10/03/2024',
-                'status' => 'Activa',
-            ],
+        if ($request->filled('state') && $request->state !== 'todas') {
+            $query->where('status', $request->state);
+        }
+
+        if ($request->filled('q')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('code', 'like', '%' . $request->q . '%')
+                    ->orWhereHas('investor', function ($iq) use ($request) {
+                        $iq->where('name', 'like', '%' . $request->q . '%');
+                    });
+            });
+        }
+
+        $investments = $query->orderBy('code')->get();
+
+        $summary = [
+            'total_usd' => $investments->sum('amount_usd'),
+            'avg_return' => round($investments->avg('monthly_rate'), 2),
+            'accumulated' => $investments->sum('gains_cop'),
+            'next_liquidations' => $investments->count(),
         ];
 
         return view('modules.investments.index', compact('summary', 'investments'));

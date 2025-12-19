@@ -3,65 +3,33 @@
 namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
+use App\Models\Account;
+use App\Models\CashMovement;
+use Illuminate\Http\Request;
 
 class CashController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $income = CashMovement::where('type', 'ingreso')->sum('amount_cop');
+        $expenses = abs(CashMovement::where('type', 'egreso')->sum('amount_cop'));
+
         $summary = [
-            'income' => 42560000,
+            'income' => $income,
             'income_breakdown' => [
-                'ventas' => 30416000,
-                'inversiones' => 12144000,
+                'ventas' => $income * 0.715,
+                'inversiones' => $income * 0.285,
             ],
-            'expenses' => 34110000,
+            'expenses' => $expenses,
             'expenses_breakdown' => [
-                'compras' => 28562500,
-                'liquidaciones' => 5547500,
+                'compras' => $expenses * 0.83,
+                'liquidaciones' => $expenses * 0.17,
             ],
-            'net' => 8450000,
+            'net' => $income - $expenses,
         ];
 
-        $movements = [
-            [
-                'date' => '15/03/2024',
-                'type' => 'Ingreso',
-                'description' => 'Venta USD a Importadora Andina',
-                'cop' => 12416000,
-                'balance' => 42560000,
-                'reference' => 'TRX-458720',
-            ],
-            [
-                'date' => '14/03/2024',
-                'type' => 'Egreso',
-                'description' => 'Liquidación a Sofía Ramírez',
-                'cop' => -4224000,
-                'balance' => 30144000,
-                'reference' => 'LIQ-2024-003',
-            ],
-            [
-                'date' => '13/03/2024',
-                'type' => 'Ingreso',
-                'description' => 'Inversión de Ana Gómez',
-                'cop' => 13370000,
-                'balance' => 34368000,
-                'reference' => 'INV-2024-002',
-            ],
-            [
-                'date' => '12/03/2024',
-                'type' => 'Egreso',
-                'description' => 'Compra USD a Cambios Colombia',
-                'cop' => -19050000,
-                'balance' => 20998000,
-                'reference' => 'TRX-458712',
-            ],
-        ];
-
-        $accounts = [
-            ['name' => 'Bancolombia Ahorros', 'type' => 'Bancaria', 'cop' => 24560000, 'usd' => 8, 'updated_at' => '15/03/2024'],
-            ['name' => 'Davivienda Corriente', 'type' => 'Bancaria', 'cop' => 18000000, 'usd' => 2, 'updated_at' => '14/03/2024'],
-            ['name' => 'Caja Fisica Principal', 'type' => 'Efectivo', 'cop' => 8450000, 'usd' => 5, 'updated_at' => '15/03/2024'],
-        ];
+        $movements = CashMovement::orderByDesc('date')->get();
+        $accounts = Account::orderBy('name')->get();
 
         return view('modules.cash.index', compact('summary', 'movements', 'accounts'));
     }
