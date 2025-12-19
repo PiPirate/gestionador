@@ -13,10 +13,6 @@
 @endphp
 
 <aside class="w-64 bg-white border-r border-gray-200 hidden sm:flex flex-col">
-    <div class="h-16 px-6 flex items-center border-b border-gray-100">
-        <span class="text-blue-700 font-semibold text-lg">$ DolarManager</span>
-    </div>
-
     <nav class="flex-1 overflow-y-auto py-4">
         <ul class="space-y-1">
             @foreach ($items as $item)
@@ -34,16 +30,4 @@
             @endforeach
         </ul>
     </nav>
-
-    <div class="border-t border-gray-100 p-4">
-        <div class="flex items-center gap-3">
-            <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                MA
-            </div>
-            <div class="flex-1">
-                <p class="text-sm font-semibold text-gray-900">María Andrade</p>
-                <p class="text-xs text-gray-500">Socio · Administrador</p>
-            </div>
-        </div>
-    </div>
 </aside>
