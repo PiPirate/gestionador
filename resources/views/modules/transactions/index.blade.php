@@ -53,6 +53,11 @@
                         <span class="text-gray-700">{{ optional($tx->transacted_at)->format('d/m/Y') }}</span>
                         <div class="text-right">
                             <button data-modal-target="transaction-edit" data-transaction='@json($tx)' class="text-blue-600 text-xs">Editar</button>
+                            <form method="POST" action="{{ route('transactions.destroy', $tx) }}" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 text-xs" onclick="return confirm('¿Eliminar transacción?')">Eliminar</button>
+                            </form>
                         </div>
                     </div>
                 @empty

@@ -75,4 +75,12 @@ class TransactionsController extends Controller
 
         return redirect()->route('transactions.index')->with('status', 'Transacción actualizada');
     }
+
+    public function destroy(Transaction $transaction)
+    {
+        $transaction->delete();
+        AuditLogger::log('Eliminar transacción', $transaction, ['id' => $transaction->id]);
+
+        return redirect()->route('transactions.index')->with('status', 'Transacción eliminada');
+    }
 }

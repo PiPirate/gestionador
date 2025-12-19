@@ -45,7 +45,6 @@ class InvestmentsController extends Controller
     {
         $data = $request->validate([
             'investor_id' => 'required|exists:investors,id',
-            'code' => 'required|string|max:50',
             'amount_usd' => 'required|numeric',
             'monthly_rate' => 'required|numeric',
             'start_date' => 'required|date',
@@ -54,7 +53,19 @@ class InvestmentsController extends Controller
             'status' => 'required|string',
         ]);
 
-        $investment = Investment::create($data);
+        $investor = Investor::findOrFail($data['investor_id']);
+        $code = $this->generateCode($investor);
+
+        $investment = Investment::create([
+            'investor_id' => $investor->id,
+            'code' => $code,
+            'amount_usd' => $data['amount_usd'],
+            'monthly_rate' => $data['monthly_rate'],
+            'start_date' => $data['start_date'],
+            'gains_cop' => $data['gains_cop'] ?? 0,
+            'next_liquidation_date' => $data['next_liquidation_date'] ?? null,
+            'status' => $data['status'],
+        ]);
         AuditLogger::log('Crear inversión', $investment, $data);
 
         return redirect()->route('investments.index')->with('status', 'Inversión creada');
@@ -64,7 +75,6 @@ class InvestmentsController extends Controller
     {
         $data = $request->validate([
             'investor_id' => 'required|exists:investors,id',
-            'code' => 'required|string|max:50',
             'amount_usd' => 'required|numeric',
             'monthly_rate' => 'required|numeric',
             'start_date' => 'required|date',
@@ -77,5 +87,20 @@ class InvestmentsController extends Controller
         AuditLogger::log('Actualizar inversión', $investment, $data);
 
         return redirect()->route('investments.index')->with('status', 'Inversión actualizada');
+    }
+
+    public function destroy(Investment $investment)
+    {
+        $investment->delete();
+        AuditLogger::log('Eliminar inversión', $investment, ['id' => $investment->id]);
+
+        return redirect()->route('investments.index')->with('status', 'Inversión eliminada');
+    }
+
+    private function generateCode(Investor $investor): string
+    {
+        $sequence = $investor->investments()->count() + 1;
+
+        return $investor->id . $sequence;
     }
 }

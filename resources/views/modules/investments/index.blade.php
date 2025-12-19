@@ -60,6 +60,11 @@
                         <span class="flex items-center justify-end gap-2">
                             <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">{{ $investment->status }}</span>
                             <button data-modal-target="investment-edit" data-investment='@json($investment)' class="text-blue-600 text-xs">Editar</button>
+                            <form method="POST" action="{{ route('investments.destroy', $investment) }}" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 text-xs" onclick="return confirm('¿Eliminar inversión?')">Eliminar</button>
+                            </form>
                         </span>
                     </div>
                 @empty
@@ -74,14 +79,16 @@
             <h3 class="text-lg font-semibold mb-4">Nueva Inversión</h3>
             <form method="POST" action="{{ route('investments.store') }}" class="space-y-3">
                 @csrf
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <select name="investor_id" class="border rounded-md px-3 py-2 w-full" required>
                         <option value="">Selecciona inversor</option>
                         @foreach ($investors as $investor)
                             <option value="{{ $investor->id }}">{{ $investor->name }}</option>
                         @endforeach
                     </select>
-                    <x-text-input name="code" placeholder="Código" class="w-full" required />
+                    <div>
+                        <p class="text-xs text-gray-500">El código se genera automáticamente</p>
+                    </div>
                 </div>
                 <div class="grid grid-cols-3 gap-3">
                     <x-text-input name="amount_usd" type="number" step="0.01" placeholder="Monto USD" class="w-full" required />
@@ -117,7 +124,10 @@
                             <option value="{{ $investor->id }}">{{ $investor->name }}</option>
                         @endforeach
                     </select>
-                    <x-text-input name="code" id="investment-code" placeholder="Código" class="w-full" required />
+                    <div>
+                        <label class="text-xs text-gray-500">Código asignado</label>
+                        <x-text-input name="code" id="investment-code" placeholder="Código" class="w-full" disabled />
+                    </div>
                 </div>
                 <div class="grid grid-cols-3 gap-3">
                     <x-text-input name="amount_usd" id="investment-amount" type="number" step="0.01" placeholder="Monto USD" class="w-full" required />

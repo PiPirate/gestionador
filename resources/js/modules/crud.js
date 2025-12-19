@@ -30,7 +30,7 @@ const attachModalListeners = () => {
                 document.getElementById('investor-document').value = investor.document;
                 document.getElementById('investor-email').value = investor.email || '';
                 document.getElementById('investor-phone').value = investor.phone || '';
-                document.getElementById('investor-capital').value = investor.capital || 0;
+                document.getElementById('investor-capital').value = investor.capital_usd || 0;
                 document.getElementById('investor-monthly').value = investor.monthly_rate || 0;
                 document.getElementById('investor-status').value = investor.status || 'Activo';
             }

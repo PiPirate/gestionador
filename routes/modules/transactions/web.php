@@ -7,4 +7,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/transactions', [TransactionsController::class, 'index'])->name('transactions.index');
     Route::post('/transactions', [TransactionsController::class, 'store'])->name('transactions.store');
     Route::put('/transactions/{transaction}', [TransactionsController::class, 'update'])->name('transactions.update');
+    Route::delete('/transactions/{transaction}', [TransactionsController::class, 'destroy'])->name('transactions.destroy');
 });
