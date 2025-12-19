@@ -11,7 +11,6 @@
                 <button data-modal-target="liquidation-create" class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">➕ Nueva Liquidación</button>
             </div>
         </div>
-
         <div class="flex flex-wrap items-center gap-3 mb-4">
             <div class="flex gap-3 text-sm">
                 <a href="{{ route('liquidations.index', ['status' => 'pendiente']) }}" class="px-3 py-2 rounded-md border {{ $status === 'pendiente' ? 'border-green-600 text-green-700 font-semibold bg-green-50' : 'border-gray-200 text-gray-600' }}">Pendientes</a>
@@ -19,7 +18,6 @@
                 <a href="{{ route('liquidations.index', ['status' => 'todas']) }}" class="px-3 py-2 rounded-md border {{ $status === 'todas' ? 'border-green-600 text-green-700 font-semibold bg-green-50' : 'border-gray-200 text-gray-600' }}">Todas</a>
             </div>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <x-modules.card title="Pendientes">
                 <div class="text-3xl font-bold text-gray-900">{{ $summary['pending'] }}</div>
@@ -30,7 +28,7 @@
                 <p class="text-xs text-green-600 mt-2">▲ 25%</p>
             </x-modules.card>
             <x-modules.card title="Total Pagado (Mes)">
-                <div class="text-3xl font-bold text-gray-900">$ {{ number_format($summary['total_paid'], 0, ',', '.') }}</div>
+                <div class="text-3xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['total_paid'], 'cop') }}</div>
                 <p class="text-xs text-green-600 mt-2">▲ 15.2%</p>
             </x-modules.card>
             <x-modules.card title="Próxima Fecha">
@@ -38,17 +36,15 @@
                 <p class="text-xs text-gray-500 mt-2">⌛ 15 días</p>
             </x-modules.card>
         </div>
-
         <x-modules.card>
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-semibold text-gray-900">Liquidaciones {{ $status === 'procesada' ? 'Procesadas' : 'Pendientes' }}</h3>
                 <p class="text-xs text-gray-500">Gestiona pagos e intereses</p>
             </div>
-
             <div class="grid grid-cols-8 text-xs font-semibold text-gray-500 pb-2">
                 <span>Liquidación</span>
                 <span>Inversor</span>
-                <span>USD</span>
+                <span>Monto ({{ strtoupper(\App\Support\Currency::current()) }})</span>
                 <span>% Mensual</span>
                 <span>Período</span>
                 <span>Ganancias</span>
@@ -63,11 +59,11 @@
                             <p class="text-xs text-gray-500">Vence: {{ optional($row->due_date)->format('d/m/Y') ?? '—' }}</p>
                         </div>
                         <span class="text-gray-700">{{ $row->investor->name ?? '—' }}</span>
-                        <span class="text-gray-700">US$ {{ number_format($row->amount_usd, 2) }}</span>
+                        <span class="text-gray-700">{{ \App\Support\Currency::format($row->amount_usd, 'usd') }}</span>
                         <span class="text-green-700 font-semibold">{{ number_format($row->monthly_rate, 1) }}%</span>
                         <span class="text-gray-700">{{ optional($row->period_start)->format('d/m') }} - {{ optional($row->period_end)->format('d/m/Y') }}</span>
-                        <span class="text-gray-900 font-semibold">$ {{ number_format($row->gain_cop, 0, ',', '.') }}</span>
-                        <span class="text-gray-900 font-semibold">$ {{ number_format($row->total_cop, 0, ',', '.') }}</span>
+                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($row->gain_cop, 'cop') }}</span>
+                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($row->total_cop, 'cop') }}</span>
                         <div class="text-right space-x-2">
                             <span class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $row->status === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700' }}">{{ ucfirst($row->status) }}</span>
                             <button data-modal-target="liquidation-edit" data-liquidation='@json($row)' class="text-blue-600 text-xs">Editar</button>
@@ -91,7 +87,6 @@
         </x-modules.card>
     </x-modules.shell>
 </x-app-layout>
-
 <div id="modal-liquidation-create" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
         <h3 class="text-lg font-semibold mb-4">Nueva Liquidación</h3>
@@ -146,7 +141,6 @@
         </form>
     </div>
 </div>
-
 <div id="modal-liquidation-edit" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
         <h3 class="text-lg font-semibold mb-4">Editar Liquidación</h3>

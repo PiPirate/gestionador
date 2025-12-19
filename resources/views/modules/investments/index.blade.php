@@ -10,10 +10,9 @@
                 <button data-modal-target="investment-create" class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">➕ Nueva Inversión</button>
             </div>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <x-modules.card title="Total Invertido (Activo)">
-                <div class="text-3xl font-bold text-gray-900">US${{ number_format($summary['total_usd'], 2) }}</div>
+                <div class="text-3xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['total_usd'], 'usd') }}</div>
                 <p class="text-xs text-green-600 mt-2">▲ Evolución</p>
             </x-modules.card>
             <x-modules.card title="Rendimiento Promedio">
@@ -21,7 +20,7 @@
                 <p class="text-xs text-green-600 mt-2">Promedio ponderado</p>
             </x-modules.card>
             <x-modules.card title="Ganancias Acumuladas">
-                <div class="text-3xl font-bold text-gray-900">${{ number_format($summary['accumulated'], 0, ',', '.') }}</div>
+                <div class="text-3xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['accumulated'], 'cop') }}</div>
                 <p class="text-xs text-green-600 mt-2">Histórico</p>
             </x-modules.card>
             <x-modules.card title="Próximas Liquidaciones">
@@ -29,13 +28,11 @@
                 <p class="text-xs text-gray-500 mt-2">Este mes</p>
             </x-modules.card>
         </div>
-
         <x-modules.card>
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-semibold text-gray-900">Inversiones Activas</h3>
                 <p class="text-sm text-gray-500">Mostrando {{ $investments->count() }} inversiones</p>
             </div>
-
             <div class="grid grid-cols-8 text-xs font-semibold text-gray-500 pb-2">
                 <span>Inversión</span>
                 <span>Inversor</span>
@@ -46,16 +43,15 @@
                 <span>Próx. Liquidación</span>
                 <span>Estado</span>
             </div>
-
             <div class="divide-y divide-gray-100">
                 @forelse ($investments as $investment)
                     <div class="grid grid-cols-8 py-3 text-sm items-center">
                         <span class="font-semibold text-gray-900">{{ $investment->code }}</span>
                         <span class="text-gray-700">{{ $investment->investor?->name }}</span>
-                        <span class="text-gray-900 font-semibold">US${{ number_format($investment->amount_usd, 2) }}</span>
+                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->amount_usd, 'usd') }}</span>
                         <span class="text-green-700 font-semibold">{{ number_format($investment->monthly_rate, 2) }}%</span>
                         <span class="text-gray-700">{{ optional($investment->start_date)->format('d/m/Y') }}</span>
-                        <span class="text-gray-900 font-semibold">${{ number_format($investment->gains_cop, 0, ',', '.') }}</span>
+                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->gains_cop, 'cop') }}</span>
                         <span class="text-gray-700">{{ optional($investment->next_liquidation_date)->format('d/m/Y') }}</span>
                         <span class="flex items-center justify-end gap-2">
                             <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">{{ $investment->status }}</span>
@@ -73,7 +69,6 @@
             </div>
         </x-modules.card>
     </x-modules.shell>
-
     <div id="modal-investment-create" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
             <h3 class="text-lg font-semibold mb-4">Nueva Inversión</h3>
@@ -111,7 +106,6 @@
             </form>
         </div>
     </div>
-
     <div id="modal-investment-edit" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
             <h3 class="text-lg font-semibold mb-4">Editar Inversión</h3>
