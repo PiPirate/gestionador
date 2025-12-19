@@ -30,8 +30,8 @@
                     @csrf
                     <span class="text-xs text-gray-600">Moneda:</span>
                     <div class="flex rounded-full border border-gray-200 overflow-hidden text-xs">
-                        <button type="submit" name="currency" value="usd" class="px-3 py-1 {{ Currency::current() === Currency::USD ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">USD</button>
-                        <button type="submit" name="currency" value="cop" class="px-3 py-1 {{ Currency::current() === Currency::COP ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">COP</button>
+                        <button type="submit" name="currency" value="usd" class="px-3 py-1 {{ \App\Support\Currency::current() === \App\Support\Currency::USD ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">USD</button>
+                        <button type="submit" name="currency" value="cop" class="px-3 py-1 {{ \App\Support\Currency::current() === \App\Support\Currency::COP ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">COP</button>
                     </div>
                 </form>
 
@@ -110,8 +110,8 @@
             @csrf
             <span class="text-xs text-gray-600">Moneda:</span>
             <div class="flex rounded-full border border-gray-200 overflow-hidden text-xs">
-                <button type="submit" name="currency" value="usd" class="px-3 py-1 {{ Currency::current() === Currency::USD ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">USD</button>
-                <button type="submit" name="currency" value="cop" class="px-3 py-1 {{ Currency::current() === Currency::COP ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">COP</button>
+                <button type="submit" name="currency" value="usd" class="px-3 py-1 {{ \App\Support\Currency::current() === \App\Support\Currency::USD ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">USD</button>
+                <button type="submit" name="currency" value="cop" class="px-3 py-1 {{ \App\Support\Currency::current() === \App\Support\Currency::COP ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">COP</button>
             </div>
         </form>
         <div class="mt-3 space-y-1">
