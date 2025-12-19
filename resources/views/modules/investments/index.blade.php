@@ -1,4 +1,7 @@
 <x-app-layout>
+    @php
+        use App\Support\Currency;
+    @endphp
     <x-modules.shell>
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -13,7 +16,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <x-modules.card title="Total Invertido (Activo)">
-                <div class="text-3xl font-bold text-gray-900">US${{ number_format($summary['total_usd'], 2) }}</div>
+                <div class="text-3xl font-bold text-gray-900">{{ Currency::format($summary['total_usd'], 'usd') }}</div>
                 <p class="text-xs text-green-600 mt-2">▲ Evolución</p>
             </x-modules.card>
             <x-modules.card title="Rendimiento Promedio">
@@ -21,7 +24,7 @@
                 <p class="text-xs text-green-600 mt-2">Promedio ponderado</p>
             </x-modules.card>
             <x-modules.card title="Ganancias Acumuladas">
-                <div class="text-3xl font-bold text-gray-900">${{ number_format($summary['accumulated'], 0, ',', '.') }}</div>
+                <div class="text-3xl font-bold text-gray-900">{{ Currency::format($summary['accumulated'], 'cop') }}</div>
                 <p class="text-xs text-green-600 mt-2">Histórico</p>
             </x-modules.card>
             <x-modules.card title="Próximas Liquidaciones">
@@ -52,10 +55,10 @@
                     <div class="grid grid-cols-8 py-3 text-sm items-center">
                         <span class="font-semibold text-gray-900">{{ $investment->code }}</span>
                         <span class="text-gray-700">{{ $investment->investor?->name }}</span>
-                        <span class="text-gray-900 font-semibold">US${{ number_format($investment->amount_usd, 2) }}</span>
+                        <span class="text-gray-900 font-semibold">{{ Currency::format($investment->amount_usd, 'usd') }}</span>
                         <span class="text-green-700 font-semibold">{{ number_format($investment->monthly_rate, 2) }}%</span>
                         <span class="text-gray-700">{{ optional($investment->start_date)->format('d/m/Y') }}</span>
-                        <span class="text-gray-900 font-semibold">${{ number_format($investment->gains_cop, 0, ',', '.') }}</span>
+                        <span class="text-gray-900 font-semibold">{{ Currency::format($investment->gains_cop, 'cop') }}</span>
                         <span class="text-gray-700">{{ optional($investment->next_liquidation_date)->format('d/m/Y') }}</span>
                         <span class="flex items-center justify-end gap-2">
                             <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">{{ $investment->status }}</span>

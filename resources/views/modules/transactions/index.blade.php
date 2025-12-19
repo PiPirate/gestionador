@@ -1,4 +1,7 @@
 <x-app-layout>
+    @php
+        use App\Support\Currency;
+    @endphp
     <x-modules.shell>
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -13,16 +16,16 @@
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <x-modules.card title="USD Comprados">
-                <div class="text-2xl font-bold text-gray-900">US${{ number_format($summary['bought'], 2) }}</div>
+                <div class="text-2xl font-bold text-gray-900">{{ Currency::format($summary['bought'], 'usd') }}</div>
             </x-modules.card>
             <x-modules.card title="USD Vendidos">
-                <div class="text-2xl font-bold text-gray-900">US${{ number_format($summary['sold'], 2) }}</div>
+                <div class="text-2xl font-bold text-gray-900">{{ Currency::format($summary['sold'], 'usd') }}</div>
             </x-modules.card>
             <x-modules.card title="Ganancia Neta">
-                <div class="text-2xl font-bold text-gray-900">${{ number_format($summary['net_profit'], 0, ',', '.') }}</div>
+                <div class="text-2xl font-bold text-gray-900">{{ Currency::format($summary['net_profit'], 'cop') }}</div>
             </x-modules.card>
             <x-modules.card title="Inventario">
-                <div class="text-2xl font-bold text-gray-900">US${{ number_format($summary['inventory'], 2) }}</div>
+                <div class="text-2xl font-bold text-gray-900">{{ Currency::format($summary['inventory'], 'usd') }}</div>
             </x-modules.card>
         </div>
 
@@ -35,7 +38,7 @@
             <div class="grid grid-cols-7 text-xs font-semibold text-gray-500 pb-2">
                 <span>Referencia</span>
                 <span>Tipo</span>
-                <span>Monto USD</span>
+                <span>Monto ({{ strtoupper(Currency::current()) }})</span>
                 <span>Tasa</span>
                 <span>Contraparte</span>
                 <span>Fecha</span>
@@ -47,7 +50,7 @@
                     <div class="grid grid-cols-7 py-3 text-sm items-center">
                         <span class="font-semibold text-gray-900">{{ $tx->reference ?? 'N/A' }}</span>
                         <span class="text-gray-700 capitalize">{{ $tx->type }}</span>
-                        <span class="text-gray-900 font-semibold">US${{ number_format($tx->amount_usd, 2) }}</span>
+                        <span class="text-gray-900 font-semibold">{{ Currency::format($tx->amount_usd, 'usd') }}</span>
                         <span class="text-gray-700">${{ number_format($tx->rate, 2) }}</span>
                         <span class="text-gray-700">{{ $tx->counterparty }}</span>
                         <span class="text-gray-700">{{ optional($tx->transacted_at)->format('d/m/Y') }}</span>

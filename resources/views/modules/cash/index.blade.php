@@ -1,4 +1,7 @@
 <x-app-layout>
+    @php
+        use App\Support\Currency;
+    @endphp
     <x-modules.shell>
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -14,15 +17,15 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <x-modules.card title="Ingresos del Mes">
-                <div class="text-3xl font-bold text-gray-900">$ {{ number_format($summary['income'], 0, ',', '.') }}</div>
+                <div class="text-3xl font-bold text-gray-900">{{ Currency::format($summary['income'], 'cop') }}</div>
                 <p class="text-xs text-gray-600 mt-2">Incluye todos los ingresos registrados desde el 1 del mes.</p>
             </x-modules.card>
             <x-modules.card title="Egresos del Mes">
-                <div class="text-3xl font-bold text-gray-900">$ {{ number_format($summary['expenses'], 0, ',', '.') }}</div>
+                <div class="text-3xl font-bold text-gray-900">{{ Currency::format($summary['expenses'], 'cop') }}</div>
                 <p class="text-xs text-gray-600 mt-2">Pagos, compras y salidas registradas.</p>
             </x-modules.card>
             <x-modules.card title="Saldo Neto">
-                <div class="text-3xl font-bold text-gray-900">$ {{ number_format($summary['net'], 0, ',', '.') }}</div>
+                <div class="text-3xl font-bold text-gray-900">{{ Currency::format($summary['net'], 'cop') }}</div>
                 <p class="text-xs text-gray-600 mt-2">Diferencia entre ingresos y egresos del mes.</p>
             </x-modules.card>
         </div>
@@ -38,8 +41,8 @@
                 <span>Tipo</span>
                 <span>Descripción</span>
                 <span>Cuenta</span>
-                <span class="text-right">Monto COP</span>
-                <span class="text-right">Saldo COP</span>
+                <span class="text-right">Monto ({{ strtoupper(Currency::current()) }})</span>
+                <span class="text-right">Saldo ({{ strtoupper(Currency::current()) }})</span>
                 <span>Referencia</span>
                 <span class="text-right">Acciones</span>
             </div>
@@ -55,9 +58,9 @@
                         <span class="text-gray-700">{{ $movement->description }}</span>
                         <span class="text-gray-700">{{ optional($movement->account)->name ?? 'Sin cuenta' }}</span>
                         <span class="text-right font-semibold {{ $movement->type === 'egreso' ? 'text-red-600' : 'text-gray-900' }}">
-                            $ {{ number_format($movement->amount_cop, 0, ',', '.') }}
+                            {{ Currency::format($movement->amount_cop, 'cop') }}
                         </span>
-                        <span class="text-right text-gray-900 font-semibold">$ {{ number_format($movement->balance_cop ?? 0, 0, ',', '.') }}</span>
+                        <span class="text-right text-gray-900 font-semibold">{{ Currency::format($movement->balance_cop ?? 0, 'cop') }}</span>
                         <span class="text-gray-600">{{ $movement->reference ?? '—' }}</span>
                         <div class="text-right space-x-2">
                             <button data-modal-target="movement-edit" data-movement='@json($movement)' class="text-blue-600 text-xs">Editar</button>
@@ -79,8 +82,8 @@
             <div class="grid grid-cols-6 text-xs font-semibold text-gray-500 pb-2">
                 <span>Cuenta</span>
                 <span>Tipo</span>
-                <span class="text-right">Saldo COP</span>
-                <span class="text-right">Saldo USD</span>
+                <span class="text-right">Saldo (desde COP)</span>
+                <span class="text-right">Saldo (desde USD)</span>
                 <span>Última actualización</span>
                 <span class="text-right">Acciones</span>
             </div>
@@ -89,8 +92,8 @@
                     <div class="grid grid-cols-6 py-3 text-sm items-center">
                         <span class="text-gray-900 font-semibold">{{ $account->name }}</span>
                         <span class="text-gray-700">{{ $account->type }}</span>
-                        <span class="text-right text-gray-900 font-semibold">$ {{ number_format($account->balance_cop, 0, ',', '.') }}</span>
-                        <span class="text-right text-gray-900 font-semibold">US$ {{ number_format($account->balance_usd, 2) }}</span>
+                        <span class="text-right text-gray-900 font-semibold">{{ Currency::format($account->balance_cop, 'cop') }}</span>
+                        <span class="text-right text-gray-900 font-semibold">{{ Currency::format($account->balance_usd, 'usd') }}</span>
                         <span class="text-gray-600">{{ optional($account->last_synced_at)->format('d/m/Y H:i') ?? '—' }}</span>
                         <div class="text-right space-x-2">
                             <button data-modal-target="account-edit" data-account='@json($account)' class="text-blue-600 text-xs">Editar</button>

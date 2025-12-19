@@ -1,3 +1,6 @@
+@php
+    use App\Support\Currency;
+@endphp
 <nav x-data="{ open: false, showNotifications: false }" class="bg-white border-b border-gray-100">
     <div class="px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16 gap-4">
@@ -23,6 +26,15 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <form method="POST" action="{{ route('currency.switch') }}" class="hidden md:flex items-center gap-1">
+                    @csrf
+                    <span class="text-xs text-gray-600">Moneda:</span>
+                    <div class="flex rounded-full border border-gray-200 overflow-hidden text-xs">
+                        <button type="submit" name="currency" value="usd" class="px-3 py-1 {{ Currency::current() === Currency::USD ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">USD</button>
+                        <button type="submit" name="currency" value="cop" class="px-3 py-1 {{ Currency::current() === Currency::COP ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">COP</button>
+                    </div>
+                </form>
+
                 <form method="GET" action="{{ route('search') }}" class="hidden md:flex items-center">
                     <input type="text" name="q" placeholder="Buscar..." class="border rounded-full px-4 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ request('q') }}">
                 </form>
@@ -93,6 +105,14 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden px-4 pb-4">
         <form method="GET" action="{{ route('search') }}" class="mt-3">
             <input type="text" name="q" placeholder="Buscar..." class="w-full border rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500" value="{{ request('q') }}">
+        </form>
+        <form method="POST" action="{{ route('currency.switch') }}" class="mt-3 flex items-center gap-2">
+            @csrf
+            <span class="text-xs text-gray-600">Moneda:</span>
+            <div class="flex rounded-full border border-gray-200 overflow-hidden text-xs">
+                <button type="submit" name="currency" value="usd" class="px-3 py-1 {{ Currency::current() === Currency::USD ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">USD</button>
+                <button type="submit" name="currency" value="cop" class="px-3 py-1 {{ Currency::current() === Currency::COP ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">COP</button>
+            </div>
         </form>
         <div class="mt-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">

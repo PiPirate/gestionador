@@ -1,4 +1,7 @@
 <x-app-layout>
+    @php
+        use App\Support\Currency;
+    @endphp
     <x-modules.shell>
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -28,7 +31,7 @@
                 @forelse ($investments as $inv)
                     <div class="py-2 border-b border-gray-100 last:border-0">
                         <p class="font-semibold text-gray-900">{{ $inv->code }}</p>
-                        <p class="text-xs text-gray-500">{{ $inv->investor->name ?? '—' }} · US${{ $inv->amount_usd }}</p>
+                        <p class="text-xs text-gray-500">{{ $inv->investor->name ?? '—' }} · {{ Currency::format($inv->amount_usd, 'usd') }}</p>
                     </div>
                 @empty
                     <p class="text-sm text-gray-600">Sin resultados.</p>

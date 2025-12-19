@@ -1,4 +1,7 @@
 <x-app-layout>
+    @php
+        use App\Support\Currency;
+    @endphp
     <x-modules.shell>
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -30,7 +33,7 @@
                 <p class="text-xs text-green-600 mt-2">▲ 25%</p>
             </x-modules.card>
             <x-modules.card title="Total Pagado (Mes)">
-                <div class="text-3xl font-bold text-gray-900">$ {{ number_format($summary['total_paid'], 0, ',', '.') }}</div>
+                <div class="text-3xl font-bold text-gray-900">{{ Currency::format($summary['total_paid'], 'cop') }}</div>
                 <p class="text-xs text-green-600 mt-2">▲ 15.2%</p>
             </x-modules.card>
             <x-modules.card title="Próxima Fecha">
@@ -48,7 +51,7 @@
             <div class="grid grid-cols-8 text-xs font-semibold text-gray-500 pb-2">
                 <span>Liquidación</span>
                 <span>Inversor</span>
-                <span>USD</span>
+                <span>Monto ({{ strtoupper(Currency::current()) }})</span>
                 <span>% Mensual</span>
                 <span>Período</span>
                 <span>Ganancias</span>
@@ -63,11 +66,11 @@
                             <p class="text-xs text-gray-500">Vence: {{ optional($row->due_date)->format('d/m/Y') ?? '—' }}</p>
                         </div>
                         <span class="text-gray-700">{{ $row->investor->name ?? '—' }}</span>
-                        <span class="text-gray-700">US$ {{ number_format($row->amount_usd, 2) }}</span>
+                        <span class="text-gray-700">{{ Currency::format($row->amount_usd, 'usd') }}</span>
                         <span class="text-green-700 font-semibold">{{ number_format($row->monthly_rate, 1) }}%</span>
                         <span class="text-gray-700">{{ optional($row->period_start)->format('d/m') }} - {{ optional($row->period_end)->format('d/m/Y') }}</span>
-                        <span class="text-gray-900 font-semibold">$ {{ number_format($row->gain_cop, 0, ',', '.') }}</span>
-                        <span class="text-gray-900 font-semibold">$ {{ number_format($row->total_cop, 0, ',', '.') }}</span>
+                        <span class="text-gray-900 font-semibold">{{ Currency::format($row->gain_cop, 'cop') }}</span>
+                        <span class="text-gray-900 font-semibold">{{ Currency::format($row->total_cop, 'cop') }}</span>
                         <div class="text-right space-x-2">
                             <span class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $row->status === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700' }}">{{ ucfirst($row->status) }}</span>
                             <button data-modal-target="liquidation-edit" data-liquidation='@json($row)' class="text-blue-600 text-xs">Editar</button>

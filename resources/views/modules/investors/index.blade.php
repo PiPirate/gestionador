@@ -1,4 +1,7 @@
 <x-app-layout>
+    @php
+        use App\Support\Currency;
+    @endphp
     <x-modules.shell>
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -37,9 +40,9 @@
                         <p>{{ $investor->email ?? 'Sin email' }}</p>
                         <p class="text-xs text-gray-500">{{ $investor->phone ?? 'Sin teléfono' }}</p>
                     </div>
-                    <span class="text-right font-semibold text-gray-900">US${{ number_format($investor->capital_usd, 2) }}</span>
+                    <span class="text-right font-semibold text-gray-900">{{ Currency::format($investor->capital_usd, 'usd') }}</span>
                     <span class="text-right text-green-700 font-semibold">{{ number_format($investor->monthly_rate, 2) }}%</span>
-                    <span class="text-right font-semibold text-gray-900">${{ number_format($investor->gains_cop ?? 0, 0, ',', '.') }}</span>
+                    <span class="text-right font-semibold text-gray-900">{{ Currency::format($investor->gains_cop ?? 0, 'cop') }}</span>
                     <div class="text-right space-x-2">
                         <span class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $investor->status === 'Pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700' }}">{{ $investor->status }}</span>
                         <button data-modal-target="investor-edit" data-investor='@json($investor)' class="text-blue-600 text-xs">Editar</button>
