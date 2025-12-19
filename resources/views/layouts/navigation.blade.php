@@ -1,3 +1,6 @@
+@php
+    use App\Support\Currency;
+@endphp
 <nav x-data="{ open: false, showNotifications: false }" class="bg-white border-b border-gray-100">
     <div class="px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16 gap-4">
