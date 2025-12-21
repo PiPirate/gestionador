@@ -8,21 +8,29 @@
                 <p class="text-sm text-gray-600 mt-1">Historial de compras y ventas</p>
             </div>
             <div class="flex items-center gap-3">
-                <button data-modal-target="transaction-create" class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">➕ Nueva Transacción</button>
+                <button data-modal-target="transaction-create"
+                    class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">
+                    <x-heroicon-o-plus class="w-5 h-5" />
+                    <span>Nueva Transacción</span>
+                </button>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <x-modules.card title="Comprados">
-                <div class="text-2xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['bought'], 'usd') }}</div>
+                <div class="text-2xl font-bold text-gray-900">
+                    {{ \App\Support\Currency::format($summary['bought'], 'usd') }}</div>
             </x-modules.card>
             <x-modules.card title="Vendidos">
-                <div class="text-2xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['sold'], 'usd') }}</div>
+                <div class="text-2xl font-bold text-gray-900">
+                    {{ \App\Support\Currency::format($summary['sold'], 'usd') }}</div>
             </x-modules.card>
             <x-modules.card title="Ganancia Neta">
-                <div class="text-2xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['net_profit'], 'cop') }}</div>
+                <div class="text-2xl font-bold text-gray-900">
+                    {{ \App\Support\Currency::format($summary['net_profit'], 'cop') }}</div>
             </x-modules.card>
             <x-modules.card title="Inventario">
-                <div class="text-2xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['inventory'], 'usd') }}</div>
+                <div class="text-2xl font-bold text-gray-900">
+                    {{ \App\Support\Currency::format($summary['inventory'], 'usd') }}</div>
             </x-modules.card>
         </div>
         <x-modules.card>
@@ -44,16 +52,19 @@
                     <div class="grid grid-cols-7 py-3 text-sm items-center">
                         <span class="font-semibold text-gray-900">{{ $tx->reference ?? 'N/A' }}</span>
                         <span class="text-gray-700 capitalize">{{ $tx->type }}</span>
-                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($tx->amount_usd, 'usd') }}</span>
+                        <span
+                            class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($tx->amount_usd, 'usd') }}</span>
                         <span class="text-gray-700">${{ number_format($tx->rate, 2) }}</span>
                         <span class="text-gray-700">{{ $tx->counterparty }}</span>
                         <span class="text-gray-700">{{ optional($tx->transacted_at)->format('d/m/Y') }}</span>
                         <div class="text-right">
-                            <button data-modal-target="transaction-edit" data-transaction='@json($tx)' class="text-blue-600 text-xs">Editar</button>
+                            <button data-modal-target="transaction-edit" data-transaction='@json($tx)'
+                                class="text-blue-600 text-xs">Editar</button>
                             <form method="POST" action="{{ route('transactions.destroy', $tx) }}" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-600 text-xs" onclick="return confirm('¿Eliminar transacción?')">Eliminar</button>
+                                <button type="submit" class="text-red-600 text-xs"
+                                    onclick="return confirm('¿Eliminar transacción?')">Eliminar</button>
                             </form>
                         </div>
                     </div>
@@ -76,16 +87,19 @@
                     <x-text-input name="reference" placeholder="Referencia" class="w-full" />
                 </div>
                 <div class="grid grid-cols-3 gap-3">
-                    <x-text-input name="amount_usd" type="number" step="0.01" placeholder="Monto USD" class="w-full" required />
+                    <x-text-input name="amount_usd" type="number" step="0.01" placeholder="Monto USD" class="w-full"
+                        required />
                     <x-text-input name="rate" type="number" step="0.01" placeholder="Tasa" class="w-full" required />
-                    <x-text-input name="amount_cop" type="number" step="0.01" placeholder="Monto COP" class="w-full" required />
+                    <x-text-input name="amount_cop" type="number" step="0.01" placeholder="Monto COP" class="w-full"
+                        required />
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <x-text-input name="counterparty" placeholder="Contraparte" class="w-full" required />
                     <x-text-input name="method" placeholder="Método" class="w-full" />
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <x-text-input name="profit_cop" type="number" step="0.01" placeholder="Ganancia COP" class="w-full" />
+                    <x-text-input name="profit_cop" type="number" step="0.01" placeholder="Ganancia COP"
+                        class="w-full" />
                     <x-text-input name="transacted_at" type="date" class="w-full" required />
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
@@ -109,21 +123,27 @@
                     <x-text-input name="reference" id="tx-reference" placeholder="Referencia" class="w-full" />
                 </div>
                 <div class="grid grid-cols-3 gap-3">
-                    <x-text-input name="amount_usd" id="tx-amount" type="number" step="0.01" placeholder="Monto USD" class="w-full" required />
-                    <x-text-input name="rate" id="tx-rate" type="number" step="0.01" placeholder="Tasa" class="w-full" required />
-                    <x-text-input name="amount_cop" id="tx-cop" type="number" step="0.01" placeholder="Monto COP" class="w-full" required />
+                    <x-text-input name="amount_usd" id="tx-amount" type="number" step="0.01" placeholder="Monto USD"
+                        class="w-full" required />
+                    <x-text-input name="rate" id="tx-rate" type="number" step="0.01" placeholder="Tasa" class="w-full"
+                        required />
+                    <x-text-input name="amount_cop" id="tx-cop" type="number" step="0.01" placeholder="Monto COP"
+                        class="w-full" required />
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <x-text-input name="counterparty" id="tx-counterparty" placeholder="Contraparte" class="w-full" required />
+                    <x-text-input name="counterparty" id="tx-counterparty" placeholder="Contraparte" class="w-full"
+                        required />
                     <x-text-input name="method" id="tx-method" placeholder="Método" class="w-full" />
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <x-text-input name="profit_cop" id="tx-profit" type="number" step="0.01" placeholder="Ganancia COP" class="w-full" />
+                    <x-text-input name="profit_cop" id="tx-profit" type="number" step="0.01" placeholder="Ganancia COP"
+                        class="w-full" />
                     <x-text-input name="transacted_at" id="tx-date" type="date" class="w-full" required />
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md">Actualizar</button>
+                    <button type="submit"
+                        class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md">Actualizar</button>
                 </div>
             </form>
         </div>

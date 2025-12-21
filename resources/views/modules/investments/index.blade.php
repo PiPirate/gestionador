@@ -7,12 +7,17 @@
                 <p class="text-sm text-gray-600 mt-1">Gestión detallada de todas las inversiones</p>
             </div>
             <div class="flex items-center gap-3">
-                <button data-modal-target="investment-create" class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">➕ Nueva Inversión</button>
+                <button data-modal-target="investment-create"
+                    class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">
+                    <x-heroicon-o-plus class="w-5 h-5" />
+                    <span>Nueva Inversión</span>
+                </button>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <x-modules.card title="Total Invertido (Activo)">
-                <div class="text-3xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['total_usd'], 'usd') }}</div>
+                <div class="text-3xl font-bold text-gray-900">
+                    {{ \App\Support\Currency::format($summary['total_usd'], 'usd') }}</div>
                 <p class="text-xs text-green-600 mt-2">▲ Evolución</p>
             </x-modules.card>
             <x-modules.card title="Rendimiento Promedio">
@@ -20,7 +25,8 @@
                 <p class="text-xs text-green-600 mt-2">Promedio ponderado</p>
             </x-modules.card>
             <x-modules.card title="Ganancias Acumuladas">
-                <div class="text-3xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['accumulated'], 'cop') }}</div>
+                <div class="text-3xl font-bold text-gray-900">
+                    {{ \App\Support\Currency::format($summary['accumulated'], 'cop') }}</div>
                 <p class="text-xs text-green-600 mt-2">Histórico</p>
             </x-modules.card>
             <x-modules.card title="Próximas Liquidaciones">
@@ -48,18 +54,24 @@
                     <div class="grid grid-cols-8 py-3 text-sm items-center">
                         <span class="font-semibold text-gray-900">{{ $investment->code }}</span>
                         <span class="text-gray-700">{{ $investment->investor?->name }}</span>
-                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->amount_usd, 'usd') }}</span>
+                        <span
+                            class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->amount_usd, 'usd') }}</span>
                         <span class="text-green-700 font-semibold">{{ number_format($investment->monthly_rate, 2) }}%</span>
                         <span class="text-gray-700">{{ optional($investment->start_date)->format('d/m/Y') }}</span>
-                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->gains_cop, 'cop') }}</span>
-                        <span class="text-gray-700">{{ optional($investment->next_liquidation_date)->format('d/m/Y') }}</span>
+                        <span
+                            class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->gains_cop, 'cop') }}</span>
+                        <span
+                            class="text-gray-700">{{ optional($investment->next_liquidation_date)->format('d/m/Y') }}</span>
                         <span class="flex items-center justify-end gap-2">
-                            <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">{{ $investment->status }}</span>
-                            <button data-modal-target="investment-edit" data-investment='@json($investment)' class="text-blue-600 text-xs">Editar</button>
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">{{ $investment->status }}</span>
+                            <button data-modal-target="investment-edit" data-investment='@json($investment)'
+                                class="text-blue-600 text-xs">Editar</button>
                             <form method="POST" action="{{ route('investments.destroy', $investment) }}" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-600 text-xs" onclick="return confirm('¿Eliminar inversión?')">Eliminar</button>
+                                <button type="submit" class="text-red-600 text-xs"
+                                    onclick="return confirm('¿Eliminar inversión?')">Eliminar</button>
                             </form>
                         </span>
                     </div>
@@ -86,9 +98,12 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-3">
-                    <x-text-input name="amount_usd" type="number" step="0.01" placeholder="Monto USD" class="w-full" required />
-                    <x-text-input name="monthly_rate" type="number" step="0.01" placeholder="% mensual" class="w-full" required />
-                    <x-text-input name="gains_cop" type="number" step="0.01" placeholder="Ganancias COP" class="w-full" />
+                    <x-text-input name="amount_usd" type="number" step="0.01" placeholder="Monto USD" class="w-full"
+                        required />
+                    <x-text-input name="monthly_rate" type="number" step="0.01" placeholder="% mensual" class="w-full"
+                        required />
+                    <x-text-input name="gains_cop" type="number" step="0.01" placeholder="Ganancias COP"
+                        class="w-full" />
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <x-text-input name="start_date" type="date" class="w-full" required />
@@ -113,7 +128,8 @@
                 @csrf
                 @method('PUT')
                 <div class="grid grid-cols-2 gap-3">
-                    <select name="investor_id" id="investment-investor" class="border rounded-md px-3 py-2 w-full" required>
+                    <select name="investor_id" id="investment-investor" class="border rounded-md px-3 py-2 w-full"
+                        required>
                         @foreach ($investors as $investor)
                             <option value="{{ $investor->id }}">{{ $investor->name }}</option>
                         @endforeach
@@ -124,9 +140,12 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-3">
-                    <x-text-input name="amount_usd" id="investment-amount" type="number" step="0.01" placeholder="Monto USD" class="w-full" required />
-                    <x-text-input name="monthly_rate" id="investment-rate" type="number" step="0.01" placeholder="% mensual" class="w-full" required />
-                    <x-text-input name="gains_cop" id="investment-gains" type="number" step="0.01" placeholder="Ganancias COP" class="w-full" />
+                    <x-text-input name="amount_usd" id="investment-amount" type="number" step="0.01"
+                        placeholder="Monto USD" class="w-full" required />
+                    <x-text-input name="monthly_rate" id="investment-rate" type="number" step="0.01"
+                        placeholder="% mensual" class="w-full" required />
+                    <x-text-input name="gains_cop" id="investment-gains" type="number" step="0.01"
+                        placeholder="Ganancias COP" class="w-full" />
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <x-text-input name="start_date" id="investment-start" type="date" class="w-full" required />
@@ -139,7 +158,8 @@
                 </select>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md">Actualizar</button>
+                    <button type="submit"
+                        class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md">Actualizar</button>
                 </div>
             </form>
         </div>

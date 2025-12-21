@@ -8,7 +8,11 @@
             </div>
             <div class="flex items-center gap-3">
                 <form method="GET" action="{{ route('liquidations.index') }}" class="hidden"></form>
-                <button data-modal-target="liquidation-create" class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">➕ Nueva Liquidación</button>
+                <button data-modal-target="liquidation-create"
+                        class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">
+                    <x-heroicon-o-plus class="w-5 h-5" />
+                    <span>Nueva Liquidación</span>
+                </button>
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3 mb-4">

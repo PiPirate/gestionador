@@ -6,7 +6,11 @@
                 <h1 class="text-2xl font-bold text-gray-900">Auditoría</h1>
                 <p class="text-sm text-gray-600 mt-1">Registro histórico de acciones del sistema.</p>
             </div>
-            <button class="inline-flex items-center gap-2 border rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">⬇️ Exportar</button>
+            <button
+                class="inline-flex items-center gap-2 border rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
+                <span>Exportar</span>
+            </button>
         </div>
 
         <x-modules.card>

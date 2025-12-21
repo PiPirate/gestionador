@@ -7,21 +7,32 @@
                 <p class="text-sm text-gray-600 mt-1">Control de efectivo y cuentas</p>
             </div>
             <div class="flex items-center gap-3">
-                <button data-modal-target="movement-create" class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">➕ Nuevo Movimiento</button>
-                <button data-modal-target="account-create" class="inline-flex items-center gap-2 border rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">🏦 Nueva Cuenta</button>
+                <button data-modal-target="movement-create"
+                    class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">
+                    <x-heroicon-o-plus class="w-5 h-5" />
+                    <span>Nuevo Movimiento</span>
+                </button>
+                <button data-modal-target="account-create"
+                    class="inline-flex items-center gap-2 border rounded-md px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    <x-heroicon-o-banknotes class="w-5 h-5" />
+                    <span>Nueva Cuenta</span>
+                </button>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <x-modules.card title="Ingresos del Mes">
-                <div class="text-3xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['income'], 'cop') }}</div>
+                <div class="text-3xl font-bold text-gray-900">
+                    {{ \App\Support\Currency::format($summary['income'], 'cop') }}</div>
                 <p class="text-xs text-gray-600 mt-2">Incluye todos los ingresos registrados desde el 1 del mes.</p>
             </x-modules.card>
             <x-modules.card title="Egresos del Mes">
-                <div class="text-3xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['expenses'], 'cop') }}</div>
+                <div class="text-3xl font-bold text-gray-900">
+                    {{ \App\Support\Currency::format($summary['expenses'], 'cop') }}</div>
                 <p class="text-xs text-gray-600 mt-2">Pagos, compras y salidas registradas.</p>
             </x-modules.card>
             <x-modules.card title="Saldo Neto">
-                <div class="text-3xl font-bold text-gray-900">{{ \App\Support\Currency::format($summary['net'], 'cop') }}</div>
+                <div class="text-3xl font-bold text-gray-900">
+                    {{ \App\Support\Currency::format($summary['net'], 'cop') }}</div>
                 <p class="text-xs text-gray-600 mt-2">Diferencia entre ingresos y egresos del mes.</p>
             </x-modules.card>
         </div>
@@ -45,23 +56,28 @@
                     <div class="grid grid-cols-8 py-3 text-sm items-center">
                         <span class="text-gray-700">{{ optional($movement->date)->format('d/m/Y') }}</span>
                         <span>
-                            <span class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $movement->type === 'ingreso' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $movement->type === 'ingreso' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                                 {{ ucfirst($movement->type) }}
                             </span>
                         </span>
                         <span class="text-gray-700">{{ $movement->description }}</span>
                         <span class="text-gray-700">{{ optional($movement->account)->name ?? 'Sin cuenta' }}</span>
-                        <span class="text-right font-semibold {{ $movement->type === 'egreso' ? 'text-red-600' : 'text-gray-900' }}">
+                        <span
+                            class="text-right font-semibold {{ $movement->type === 'egreso' ? 'text-red-600' : 'text-gray-900' }}">
                             {{ \App\Support\Currency::format($movement->amount_cop, 'cop') }}
                         </span>
-                        <span class="text-right text-gray-900 font-semibold">{{ \App\Support\Currency::format($movement->balance_cop ?? 0, 'cop') }}</span>
+                        <span
+                            class="text-right text-gray-900 font-semibold">{{ \App\Support\Currency::format($movement->balance_cop ?? 0, 'cop') }}</span>
                         <span class="text-gray-600">{{ $movement->reference ?? '—' }}</span>
                         <div class="text-right space-x-2">
-                            <button data-modal-target="movement-edit" data-movement='@json($movement)' class="text-blue-600 text-xs">Editar</button>
+                            <button data-modal-target="movement-edit" data-movement='@json($movement)'
+                                class="text-blue-600 text-xs">Editar</button>
                             <form method="POST" action="{{ route('cash.movements.destroy', $movement) }}" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-600 text-xs" onclick="return confirm('¿Eliminar movimiento?')">Eliminar</button>
+                                <button type="submit" class="text-red-600 text-xs"
+                                    onclick="return confirm('¿Eliminar movimiento?')">Eliminar</button>
                             </form>
                         </div>
                     </div>
@@ -85,15 +101,20 @@
                     <div class="grid grid-cols-6 py-3 text-sm items-center">
                         <span class="text-gray-900 font-semibold">{{ $account->name }}</span>
                         <span class="text-gray-700">{{ $account->type }}</span>
-                        <span class="text-right text-gray-900 font-semibold">{{ \App\Support\Currency::format($account->balance_cop, 'cop') }}</span>
-                        <span class="text-right text-gray-900 font-semibold">{{ \App\Support\Currency::format($account->balance_usd, 'usd') }}</span>
-                        <span class="text-gray-600">{{ optional($account->last_synced_at)->format('d/m/Y H:i') ?? '—' }}</span>
+                        <span
+                            class="text-right text-gray-900 font-semibold">{{ \App\Support\Currency::format($account->balance_cop, 'cop') }}</span>
+                        <span
+                            class="text-right text-gray-900 font-semibold">{{ \App\Support\Currency::format($account->balance_usd, 'usd') }}</span>
+                        <span
+                            class="text-gray-600">{{ optional($account->last_synced_at)->format('d/m/Y H:i') ?? '—' }}</span>
                         <div class="text-right space-x-2">
-                            <button data-modal-target="account-edit" data-account='@json($account)' class="text-blue-600 text-xs">Editar</button>
+                            <button data-modal-target="account-edit" data-account='@json($account)'
+                                class="text-blue-600 text-xs">Editar</button>
                             <form method="POST" action="{{ route('cash.accounts.destroy', $account) }}" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-600 text-xs" onclick="return confirm('¿Eliminar cuenta?')">Eliminar</button>
+                                <button type="submit" class="text-red-600 text-xs"
+                                    onclick="return confirm('¿Eliminar cuenta?')">Eliminar</button>
                             </form>
                         </div>
                     </div>
@@ -145,8 +166,10 @@
                     <option value="egreso">Egreso</option>
                 </select>
             </div>
-            <x-text-input name="description" id="movement-description" placeholder="Descripción" class="w-full" required />
-            <x-text-input name="amount_cop" id="movement-amount" type="number" step="0.01" placeholder="Monto COP" class="w-full" required />
+            <x-text-input name="description" id="movement-description" placeholder="Descripción" class="w-full"
+                required />
+            <x-text-input name="amount_cop" id="movement-amount" type="number" step="0.01" placeholder="Monto COP"
+                class="w-full" required />
             <x-text-input name="reference" id="movement-reference" placeholder="Referencia (opcional)" class="w-full" />
             <select name="account_id" id="movement-account" class="border rounded-md px-3 py-2 w-full">
                 <option value="">Sin cuenta</option>
@@ -173,8 +196,10 @@
                 <option value="wallet">Wallet</option>
             </select>
             <div class="grid grid-cols-2 gap-3">
-                <x-text-input name="balance_cop" type="number" step="0.01" placeholder="Saldo COP" class="w-full" required />
-                <x-text-input name="balance_usd" type="number" step="0.01" placeholder="Saldo USD" class="w-full" required />
+                <x-text-input name="balance_cop" type="number" step="0.01" placeholder="Saldo COP" class="w-full"
+                    required />
+                <x-text-input name="balance_usd" type="number" step="0.01" placeholder="Saldo USD" class="w-full"
+                    required />
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
@@ -191,13 +216,15 @@
             @method('PUT')
             <x-text-input name="name" id="account-name" placeholder="Nombre de la cuenta" class="w-full" required />
             <select name="type" id="account-type" class="border rounded-md px-3 py-2 w-full">
-                <option value="bancaria">Bancaria</option>
+                <option value="bancaria">Bancaria</ option>
                 <option value="efectivo">Efectivo</option>
                 <option value="wallet">Wallet</option>
             </select>
             <div class="grid grid-cols-2 gap-3">
-                <x-text-input name="balance_cop" id="account-balance-cop" type="number" step="0.01" placeholder="Saldo COP" class="w-full" required />
-                <x-text-input name="balance_usd" id="account-balance-usd" type="number" step="0.01" placeholder="Saldo USD" class="w-full" required />
+                <x-text-input name="balance_cop" id="account-balance-cop" type="number" step="0.01"
+                    placeholder="Saldo COP" class="w-full" required />
+                <x-text-input name="balance_usd" id="account-balance-usd" type="number" step="0.01"
+                    placeholder="Saldo USD" class="w-full" required />
             </div>
             <div class="flex justify-end gap-2 pt-2">
                 <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
