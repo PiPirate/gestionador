@@ -41,7 +41,7 @@
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
                     class="text-sm text-gray-600"
-                >{{ __('Saved.') }}</p>
+                >{{ __('Contraseña actualizada.') }}</p>
             @endif
         </div>
     </form>
