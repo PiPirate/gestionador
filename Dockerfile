@@ -1,27 +1,28 @@
 FROM php:8.2-cli
 
-# dependencias del sistema y extensiones necesarias
 RUN apt-get update && apt-get install -y \
-    git unzip libpq-dev \
+    git unzip libpq-dev curl \
  && docker-php-ext-install pdo pdo_pgsql
 
-# composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Node (para Vite)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+ && apt-get install -y nodejs
 
 WORKDIR /var/www
 
-# copiar proyecto
 COPY . .
 
-# instalar dependencias
+# PHP deps
 RUN composer install --no-dev --optimize-autoloader
 
-# permisos (storage y cache)
+# Frontend build (Vite)
+RUN npm ci && npm run build
+
+# permisos
 RUN mkdir -p storage bootstrap/cache \
- && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
-
-# Render expone el puerto en $PORT
+# evitar caches viejos
 CMD php artisan config:clear && php artisan route:clear && php -S 0.0.0.0:${PORT} -t public
-
