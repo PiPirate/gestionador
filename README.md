@@ -21,6 +21,20 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Conexión de base de datos con Supabase
+
+La aplicación está lista para usar la base de datos de Supabase a través de PostgreSQL. Configura tu archivo `.env` con los datos del proyecto obtenidos en **Settings → Database** de Supabase:
+
+- `DB_CONNECTION=pgsql`
+- `DB_HOST` igual al host de la base de datos (por ejemplo, `YOUR_SUPABASE_HOST.supabase.co`).
+- `DB_PORT=5432`
+- `DB_DATABASE=postgres`
+- `DB_USERNAME` y `DB_PASSWORD` según las credenciales del proyecto.
+- `DB_SCHEMA=public,graphql_public` para que el buscador de esquemas incluya los esquemas expuestos en la Data API.
+- `DB_SSLMODE=require` para forzar la conexión segura exigida por Supabase.
+
+Después de actualizar las variables, ejecuta las migraciones con `php artisan migrate` para preparar las tablas en Supabase.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
