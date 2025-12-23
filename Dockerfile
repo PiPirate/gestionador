@@ -18,7 +18,9 @@ RUN composer install --no-dev --optimize-autoloader
 
 # permisos (storage y cache)
 RUN mkdir -p storage bootstrap/cache \
+ && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
+
 
 # Render expone el puerto en $PORT
 CMD php artisan config:clear && php artisan route:clear && php -S 0.0.0.0:${PORT} -t public
