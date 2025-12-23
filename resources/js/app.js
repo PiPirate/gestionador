@@ -7,3 +7,4 @@ window.Alpine = Alpine;
 Alpine.start();
 
 import "./modules/_index";
+import '../css/modules/dashboard/index.css';
