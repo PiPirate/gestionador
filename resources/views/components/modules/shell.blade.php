@@ -1,13 +1,3 @@
-@once
-    @push('styles')
-        @vite('resources/css/modules/dashboard/index.css')
-    @endpush
-
-    @push('scripts')
-        @vite('resources/js/modules/dashboard/index.js')
-    @endpush
-@endonce
-
 <div class="min-h-screen bg-gray-50 flex">
     <x-modules.sidebar />
 
