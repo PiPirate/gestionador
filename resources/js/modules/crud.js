@@ -5,6 +5,22 @@ const toggleModal = (id, show) => {
     }
 };
 
+const normalizeDateInput = (value) => {
+    if (!value) {
+        return '';
+    }
+
+    if (value.includes('T')) {
+        return value.split('T')[0];
+    }
+
+    if (value.includes(' ')) {
+        return value.split(' ')[0];
+    }
+
+    return value;
+};
+
 const attachModalListeners = () => {
     document.querySelectorAll('[data-modal-target]').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -42,8 +58,8 @@ const attachModalListeners = () => {
                 document.getElementById('investment-code').value = investment.code;
                 document.getElementById('investment-amount').value = investment.amount_cop;
                 document.getElementById('investment-rate').value = investment.monthly_rate;
-                document.getElementById('investment-start').value = investment.start_date;
-                document.getElementById('investment-end').value = investment.end_date || '';
+                document.getElementById('investment-start').value = normalizeDateInput(investment.start_date);
+                document.getElementById('investment-end').value = normalizeDateInput(investment.end_date);
                 document.getElementById('investment-status').value = investment.status;
                 const updatedAtLabel = document.getElementById('investment-updated-at');
                 if (updatedAtLabel) {
