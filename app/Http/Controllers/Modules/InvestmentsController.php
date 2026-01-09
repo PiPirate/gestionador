@@ -51,7 +51,6 @@ class InvestmentsController extends Controller
             'amount_cop' => 'required|numeric|min:0',
             'monthly_rate' => 'required|numeric',
             'start_date' => 'required|date',
-            'next_liquidation_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'status' => 'required|in:pendiente,activa,cerrada',
         ]);
@@ -65,7 +64,6 @@ class InvestmentsController extends Controller
             'amount_cop' => $data['amount_cop'],
             'monthly_rate' => $data['monthly_rate'],
             'start_date' => $data['start_date'],
-            'next_liquidation_date' => $data['next_liquidation_date'] ?? null,
             'end_date' => $data['end_date'] ?? null,
             'status' => $data['status'],
             'closed_at' => $data['status'] === 'cerrada' ? Carbon::now() : null,
@@ -82,7 +80,6 @@ class InvestmentsController extends Controller
             'amount_cop' => 'required|numeric|min:0',
             'monthly_rate' => 'required|numeric',
             'start_date' => 'required|date',
-            'next_liquidation_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'status' => 'required|in:pendiente,activa,cerrada',
         ]);

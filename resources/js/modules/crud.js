@@ -44,7 +44,6 @@ const attachModalListeners = () => {
                 document.getElementById('investment-rate').value = investment.monthly_rate;
                 document.getElementById('investment-start').value = investment.start_date;
                 document.getElementById('investment-end').value = investment.end_date || '';
-                document.getElementById('investment-next').value = investment.next_liquidation_date || '';
                 document.getElementById('investment-status').value = investment.status;
                 const updatedAtLabel = document.getElementById('investment-updated-at');
                 if (updatedAtLabel) {

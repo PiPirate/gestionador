@@ -38,9 +38,9 @@
                     {{ \App\Support\Currency::format($summary['accumulated'], 'cop') }}</div>
                 <p class="text-xs text-green-600 mt-2">Calculadas al día</p>
             </x-modules.card>
-            <x-modules.card title="Próximas Liquidaciones">
+            <x-modules.card title="Inversiones Pendientes">
                 <div class="text-3xl font-bold text-gray-900">{{ $summary['next_liquidations'] }}</div>
-                <p class="text-xs text-gray-500 mt-2">Este mes</p>
+                <p class="text-xs text-gray-500 mt-2">Por gestionar</p>
             </x-modules.card>
         </div>
         <x-modules.card>
@@ -48,7 +48,7 @@
                 <h3 class="text-sm font-semibold text-gray-900">Listado de inversiones</h3>
                 <p class="text-sm text-gray-500">Mostrando {{ $investments->count() }} inversiones</p>
             </div>
-            <div class="grid grid-cols-11 text-xs font-semibold text-gray-500 pb-2">
+            <div class="grid grid-cols-10 text-xs font-semibold text-gray-500 pb-2">
                 <span>Inversión</span>
                 <span>Inversor</span>
                 <span>Monto</span>
@@ -57,12 +57,11 @@
                 <span>Fecha Fin</span>
                 <span>Ganancia diaria</span>
                 <span>Proyección mes</span>
-                <span>Fecha corte</span>
                 <span>Estado</span>
             </div>
             <div class="divide-y divide-gray-100">
                 @forelse ($investments as $investment)
-                    <div class="grid grid-cols-11 py-3 text-sm items-center">
+                    <div class="grid grid-cols-10 py-3 text-sm items-center">
                         <span class="font-semibold text-gray-900">{{ $investment->code }}</span>
                         <span class="text-gray-700">{{ $investment->investor?->name }}</span>
                         <span
@@ -75,8 +74,6 @@
                             class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->dailyGainCop(), 'cop') }}</span>
                         <span
                             class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->monthlyEstimatedGainCop(), 'cop') }}</span>
-                        <span
-                            class="text-gray-700">{{ optional($investment->next_liquidation_date)->format('d/m/Y') ?? '—' }}</span>
                         <span class="flex items-center justify-end gap-2">
                             <span
                                 class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $investment->status === 'cerrada' ? 'bg-gray-100 text-gray-700' : ($investment->status === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700') }}">{{ ucfirst($investment->status) }}</span>
@@ -172,9 +169,9 @@
                 </div>
                 <div>
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fechas de inversión</p>
-                    <p class="text-xs text-gray-400">Inicio, finalización y fecha de corte si aplica.</p>
+                    <p class="text-xs text-gray-400">Inicio y finalización del periodo de inversión.</p>
                 </div>
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs text-gray-500">Fecha de inicio</label>
                         <x-text-input name="start_date" id="investment-start" type="date" class="w-full" required />
@@ -182,10 +179,6 @@
                     <div>
                         <label class="text-xs text-gray-500">Fecha de finalización</label>
                         <x-text-input name="end_date" id="investment-end" type="date" class="w-full" />
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-500">Fecha de corte</label>
-                        <x-text-input name="next_liquidation_date" id="investment-next" type="date" class="w-full" />
                     </div>
                 </div>
                 <div class="rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-600">

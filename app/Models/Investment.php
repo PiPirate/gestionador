@@ -19,7 +19,6 @@ class Investment extends Model
         'start_date',
         'end_date',
         'gains_cop',
-        'next_liquidation_date',
         'status',
         'closed_at',
     ];
@@ -27,7 +26,6 @@ class Investment extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'next_liquidation_date' => 'date',
         'closed_at' => 'datetime',
     ];
 

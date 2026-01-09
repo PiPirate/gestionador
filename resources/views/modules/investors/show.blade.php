@@ -34,13 +34,12 @@
                 <h3 class="text-sm font-semibold text-gray-900">Inversiones del inversor</h3>
                 <p class="text-sm text-gray-500">Total {{ $investments->count() }} inversiones</p>
             </div>
-            <div class="grid grid-cols-10 text-xs font-semibold text-gray-500 pb-2">
+            <div class="grid grid-cols-9 text-xs font-semibold text-gray-500 pb-2">
                 <span>Inversión</span>
                 <span>Monto</span>
                 <span>% Mensual</span>
                 <span>Inicio</span>
                 <span>Fin</span>
-                <span>Fecha corte</span>
                 <span>Ganancia diaria</span>
                 <span>Proyección mensual</span>
                 <span>Días</span>
@@ -48,15 +47,13 @@
             </div>
             <div class="divide-y divide-gray-100">
                 @forelse ($investments as $investment)
-                    <div class="grid grid-cols-10 py-3 text-sm items-center">
+                    <div class="grid grid-cols-9 py-3 text-sm items-center">
                         <span class="font-semibold text-gray-900">{{ $investment->code }}</span>
                         <span class="text-gray-900 font-semibold">
                             {{ \App\Support\Currency::format($investment->amount_cop, 'cop') }}</span>
                         <span class="text-green-700 font-semibold">{{ number_format($investment->monthly_rate, 2) }}%</span>
                         <span class="text-gray-700">{{ optional($investment->start_date)->format('d/m/Y') }}</span>
                         <span class="text-gray-700">{{ optional($investment->end_date)->format('d/m/Y') ?? '—' }}</span>
-                        <span class="text-gray-700">
-                            {{ optional($investment->next_liquidation_date)->format('d/m/Y') ?? '—' }}</span>
                         <span class="text-gray-900 font-semibold">
                             {{ \App\Support\Currency::format($investment->dailyGainCop(), 'cop') }}</span>
                         <span class="text-gray-900 font-semibold">
