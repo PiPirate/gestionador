@@ -46,6 +46,16 @@ const attachModalListeners = () => {
                 document.getElementById('investment-end').value = investment.end_date || '';
                 document.getElementById('investment-next').value = investment.next_liquidation_date || '';
                 document.getElementById('investment-status').value = investment.status;
+                const updatedAtLabel = document.getElementById('investment-updated-at');
+                if (updatedAtLabel) {
+                    updatedAtLabel.textContent = investment.updated_at
+                        ? new Date(investment.updated_at).toLocaleString('es-CO')
+                        : '—';
+                }
+                const updatedByLabel = document.getElementById('investment-updated-by');
+                if (updatedByLabel) {
+                    updatedByLabel.textContent = investment.updated_by_name || investment.updated_by || 'No registrado';
+                }
             }
 
             if (target === 'transaction-edit' && btn.dataset.transaction) {

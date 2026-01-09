@@ -114,17 +114,25 @@
                         <p class="text-xs text-gray-500">El código se genera automáticamente</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <x-text-input name="amount_cop" type="number" step="0.01" placeholder="Monto (COP)" class="w-full"
                         required />
                     <x-text-input name="monthly_rate" type="number" step="0.01" placeholder="% mensual" class="w-full"
                         required />
-                    <x-text-input name="end_date" type="date" placeholder="Fecha fin" class="w-full" />
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fechas de inversión</p>
+                    <p class="text-xs text-gray-400">Inicio y finalización del periodo de inversión.</p>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <x-text-input name="start_date" type="date" class="w-full" required />
-                    <x-text-input name="next_liquidation_date" type="date" class="w-full"
-                        placeholder="Fecha corte" />
+                    <div>
+                        <label class="text-xs text-gray-500">Fecha de inicio</label>
+                        <x-text-input name="start_date" type="date" class="w-full" required />
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500">Fecha de finalización</label>
+                        <x-text-input name="end_date" type="date" class="w-full" />
+                    </div>
                 </div>
                 <select name="status" class="border rounded-md px-3 py-2 w-full">
                     <option value="pendiente">Pendiente</option>
@@ -156,17 +164,34 @@
                         <x-text-input name="code" id="investment-code" placeholder="Código" class="w-full" disabled />
                     </div>
                 </div>
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <x-text-input name="amount_cop" id="investment-amount" type="number" step="0.01"
                         placeholder="Monto (COP)" class="w-full" required />
                     <x-text-input name="monthly_rate" id="investment-rate" type="number" step="0.01"
                         placeholder="% mensual" class="w-full" required />
-                    <x-text-input name="end_date" id="investment-end" type="date" class="w-full" />
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <x-text-input name="start_date" id="investment-start" type="date" class="w-full" required />
-                    <x-text-input name="next_liquidation_date" id="investment-next" type="date" class="w-full"
-                        placeholder="Fecha corte" />
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fechas de inversión</p>
+                    <p class="text-xs text-gray-400">Inicio, finalización y fecha de corte si aplica.</p>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-xs text-gray-500">Fecha de inicio</label>
+                        <x-text-input name="start_date" id="investment-start" type="date" class="w-full" required />
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500">Fecha de finalización</label>
+                        <x-text-input name="end_date" id="investment-end" type="date" class="w-full" />
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500">Fecha de corte</label>
+                        <x-text-input name="next_liquidation_date" id="investment-next" type="date" class="w-full" />
+                    </div>
+                </div>
+                <div class="rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+                    <p class="font-semibold text-gray-700">Registro de edición</p>
+                    <p>Última edición: <span id="investment-updated-at">—</span></p>
+                    <p>Editado por: <span id="investment-updated-by">No registrado</span></p>
                 </div>
                 <select name="status" id="investment-status" class="border rounded-md px-3 py-2 w-full">
                     <option value="pendiente">Pendiente</option>
