@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Investment;
 use App\Models\Investor;
 use App\Services\AuditLogger;
+use App\Services\InvestmentLifecycleService;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
 class InvestmentsController extends Controller
 {
     public function index(Request $request)
     {
+        app(InvestmentLifecycleService::class)->closeExpiredInvestments();
         $query = Investment::with('investor');
 
         if ($request->filled('q')) {
@@ -30,9 +33,9 @@ class InvestmentsController extends Controller
         $investments = $query->orderByDesc('start_date')->get();
 
         $summary = [
-            'total_usd' => $investments->sum('amount_usd'),
-            'avg_return' => round($investments->avg('monthly_rate'), 2),
-            'accumulated' => $investments->sum('gains_cop'),
+            'total_cop' => Investment::where('status', 'activa')->sum('amount_cop'),
+            'avg_return' => round(Investment::avg('monthly_rate') ?? 0, 2),
+            'accumulated' => $investments->sum(fn (Investment $investment) => $investment->dailyGainCop()),
             'next_liquidations' => $investments->where('status', 'pendiente')->count(),
         ];
 
@@ -45,12 +48,12 @@ class InvestmentsController extends Controller
     {
         $data = $request->validate([
             'investor_id' => 'required|exists:investors,id',
-            'amount_usd' => 'required|numeric',
+            'amount_cop' => 'required|numeric|min:0',
             'monthly_rate' => 'required|numeric',
             'start_date' => 'required|date',
-            'gains_cop' => 'nullable|numeric',
             'next_liquidation_date' => 'nullable|date',
-            'status' => 'required|string',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'status' => 'required|in:pendiente,activa,cerrada',
         ]);
 
         $investor = Investor::findOrFail($data['investor_id']);
@@ -59,12 +62,13 @@ class InvestmentsController extends Controller
         $investment = Investment::create([
             'investor_id' => $investor->id,
             'code' => $code,
-            'amount_usd' => $data['amount_usd'],
+            'amount_cop' => $data['amount_cop'],
             'monthly_rate' => $data['monthly_rate'],
             'start_date' => $data['start_date'],
-            'gains_cop' => $data['gains_cop'] ?? 0,
             'next_liquidation_date' => $data['next_liquidation_date'] ?? null,
+            'end_date' => $data['end_date'] ?? null,
             'status' => $data['status'],
+            'closed_at' => $data['status'] === 'cerrada' ? Carbon::now() : null,
         ]);
         AuditLogger::log('Crear inversión', $investment, $data);
 
@@ -75,15 +79,25 @@ class InvestmentsController extends Controller
     {
         $data = $request->validate([
             'investor_id' => 'required|exists:investors,id',
-            'amount_usd' => 'required|numeric',
+            'amount_cop' => 'required|numeric|min:0',
             'monthly_rate' => 'required|numeric',
             'start_date' => 'required|date',
-            'gains_cop' => 'nullable|numeric',
             'next_liquidation_date' => 'nullable|date',
-            'status' => 'required|string',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'status' => 'required|in:pendiente,activa,cerrada',
         ]);
 
-        $investment->update($data);
+        $investment->fill($data);
+
+        if ($investment->status === 'cerrada' && !$investment->closed_at) {
+            $investment->closed_at = Carbon::now();
+        }
+
+        if ($investment->status === 'cerrada' && !$investment->end_date) {
+            $investment->end_date = Carbon::now()->toDateString();
+        }
+
+        $investment->save();
         AuditLogger::log('Actualizar inversión', $investment, $data);
 
         return redirect()->route('investments.index')->with('status', 'Inversión actualizada');
@@ -91,6 +105,11 @@ class InvestmentsController extends Controller
 
     public function destroy(Investment $investment)
     {
+        if ($investment->status === 'cerrada') {
+            return redirect()->route('investments.index')
+                ->with('status', 'Las inversiones cerradas se mantienen en el historial.');
+        }
+
         $investment->delete();
         AuditLogger::log('Eliminar inversión', $investment, ['id' => $investment->id]);
 
