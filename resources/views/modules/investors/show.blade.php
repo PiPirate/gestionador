@@ -40,7 +40,7 @@
                 <span>% Mensual</span>
                 <span>Inicio</span>
                 <span>Fin</span>
-                <span>Interés diaria</span>
+                <span>Ganancia diaria</span>
                 <span>Proyección mensual</span>
                 <span>Días</span>
                 <span>Estado</span>

@@ -41,8 +41,14 @@ class Investment extends Model
         }
 
         $end = $this->resolvedEndDate($asOf);
-        $daysElapsed = max(0, $this->start_date->diffInDays($end, false));
-        $dailyRate = ($this->monthly_rate / 100) / 30;
+        $totalDays = $this->totalInvestmentDays();
+        if ($totalDays <= 0) {
+            return 0.0;
+        }
+
+        $daysElapsed = max(0, $this->start_date->diffInDays($end, false) + 1);
+        $daysElapsed = min($daysElapsed, $totalDays);
+        $dailyRate = ($this->monthly_rate / 100) / $totalDays;
 
         return $this->amount_cop * $dailyRate * $daysElapsed;
     }
@@ -64,7 +70,16 @@ class Investment extends Model
 
         $end = $this->resolvedEndDate($asOf);
 
-        return max(0, $this->start_date->diffInDays($end, false));
+        return max(0, $this->start_date->diffInDays($end, false) + 1);
+    }
+
+    public function totalInvestmentDays(): int
+    {
+        if (!$this->start_date || !$this->end_date) {
+            return 0;
+        }
+
+        return max(0, $this->start_date->diffInDays($this->end_date, false) + 1);
     }
 
     private function resolvedEndDate(?Carbon $asOf = null): Carbon
