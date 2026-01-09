@@ -30,7 +30,6 @@ const attachModalListeners = () => {
                 document.getElementById('investor-document').value = investor.document;
                 document.getElementById('investor-email').value = investor.email || '';
                 document.getElementById('investor-phone').value = investor.phone || '';
-                document.getElementById('investor-capital').value = investor.capital_usd || 0;
                 document.getElementById('investor-monthly').value = investor.monthly_rate || 0;
                 document.getElementById('investor-status').value = investor.status || 'Activo';
             }
@@ -41,10 +40,10 @@ const attachModalListeners = () => {
                 form.action = `/investments/${investment.id}`;
                 document.getElementById('investment-investor').value = investment.investor_id;
                 document.getElementById('investment-code').value = investment.code;
-                document.getElementById('investment-amount').value = investment.amount_usd;
+                document.getElementById('investment-amount').value = investment.amount_cop;
                 document.getElementById('investment-rate').value = investment.monthly_rate;
-                document.getElementById('investment-gains').value = investment.gains_cop;
                 document.getElementById('investment-start').value = investment.start_date;
+                document.getElementById('investment-end').value = investment.end_date || '';
                 document.getElementById('investment-next').value = investment.next_liquidation_date || '';
                 document.getElementById('investment-status').value = investment.status;
             }
