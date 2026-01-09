@@ -33,7 +33,7 @@
                 <div class="text-3xl font-bold text-green-700">{{ number_format($summary['avg_return'], 2) }}%</div>
                 <p class="text-xs text-green-600 mt-2">Promedio ponderado</p>
             </x-modules.card>
-            <x-modules.card title="Ganancias Progresivas">
+            <x-modules.card title="Intereses Acumulados">
                 <div class="text-3xl font-bold text-gray-900">
                     {{ \App\Support\Currency::format($summary['accumulated'], 'cop') }}</div>
                 <p class="text-xs text-green-600 mt-2">Calculadas al día</p>
@@ -55,7 +55,7 @@
                 <span>% Mensual</span>
                 <span>Fecha Inicio</span>
                 <span>Fecha Fin</span>
-                <span>Ganancia diaria</span>
+                <span>Interés diaria</span>
                 <span>Proyección mes</span>
                 <span>Estado</span>
             </div>
