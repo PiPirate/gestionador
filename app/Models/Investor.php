@@ -48,7 +48,7 @@ class Investor extends Model
 
     public function totalGainsCop(): float
     {
-        return $this->investments->sum(fn (Investment $investment) => $investment->dailyGainCop());
+        return $this->investments->sum(fn (Investment $investment) => $investment->accumulatedGainCop());
     }
 
     public function totalDaysInvested(): int

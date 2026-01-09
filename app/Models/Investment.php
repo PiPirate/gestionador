@@ -34,7 +34,23 @@ class Investment extends Model
         return $this->belongsTo(Investor::class);
     }
 
-    public function dailyGainCop(?Carbon $asOf = null): float
+    public function dailyGainCop(): float
+    {
+        if ($this->amount_cop <= 0) {
+            return 0.0;
+        }
+
+        $totalDays = $this->totalInvestmentDays();
+        if ($totalDays <= 0) {
+            return 0.0;
+        }
+
+        $dailyRate = ($this->monthly_rate / 100) / $totalDays;
+
+        return $this->amount_cop * $dailyRate;
+    }
+
+    public function accumulatedGainCop(?Carbon $asOf = null): float
     {
         if (!$this->start_date || $this->amount_cop <= 0) {
             return 0.0;
