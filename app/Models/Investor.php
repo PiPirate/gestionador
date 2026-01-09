@@ -17,9 +17,7 @@ class Investor extends Model
         'phone',
         'since',
         'status',
-        'capital_usd',
         'monthly_rate',
-        'gains_cop',
     ];
 
     protected $casts = [
@@ -34,5 +32,27 @@ class Investor extends Model
     public function liquidations(): HasMany
     {
         return $this->hasMany(Liquidation::class);
+    }
+
+    public function totalInvestedCop(): float
+    {
+        return $this->investments->sum('amount_cop');
+    }
+
+    public function totalWithdrawnCop(): float
+    {
+        return $this->investments
+            ->where('status', 'cerrada')
+            ->sum('amount_cop');
+    }
+
+    public function totalGainsCop(): float
+    {
+        return $this->investments->sum(fn (Investment $investment) => $investment->accumulatedGainCop());
+    }
+
+    public function totalDaysInvested(): int
+    {
+        return $this->investments->sum(fn (Investment $investment) => $investment->daysInvested());
     }
 }
