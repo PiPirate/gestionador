@@ -39,7 +39,7 @@
             <x-modules.card title="Inversiones">
                 <p class="text-3xl font-bold text-gray-900">{{ $metrics['investments']['count'] }}</p>
                 <p class="text-xs text-gray-600">Capital:
-                    {{ \App\Support\Currency::format($metrics['investments']['capital_usd'], 'usd') }}</p>
+                    {{ \App\Support\Currency::format($metrics['investments']['capital_cop'], 'cop') }}</p>
                 <p class="text-xs text-blue-700">Tasa promedio:
                     {{ number_format($metrics['investments']['avg_rate'], 2) }}%</p>
             </x-modules.card>
@@ -69,7 +69,7 @@
                                 <p class="text-xs text-gray-500">Documento: {{ $investor->document }}</p>
                             </div>
                             <p class="text-gray-900 font-semibold">
-                                {{ \App\Support\Currency::format($investor->investments_sum_amount_usd, 'usd') }}</p>
+                                {{ \App\Support\Currency::format($investor->investments_sum_amount_cop, 'cop') }}</p>
                         </div>
                     @empty
                         <p class="text-sm text-gray-500 py-2">Sin inversores registrados.</p>
