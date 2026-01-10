@@ -5,6 +5,22 @@ const toggleModal = (id, show) => {
     }
 };
 
+const normalizeDateInput = (value) => {
+    if (!value) {
+        return '';
+    }
+
+    if (value.includes('T')) {
+        return value.split('T')[0];
+    }
+
+    if (value.includes(' ')) {
+        return value.split(' ')[0];
+    }
+
+    return value;
+};
+
 const attachModalListeners = () => {
     document.querySelectorAll('[data-modal-target]').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -30,7 +46,6 @@ const attachModalListeners = () => {
                 document.getElementById('investor-document').value = investor.document;
                 document.getElementById('investor-email').value = investor.email || '';
                 document.getElementById('investor-phone').value = investor.phone || '';
-                document.getElementById('investor-capital').value = investor.capital_usd || 0;
                 document.getElementById('investor-monthly').value = investor.monthly_rate || 0;
                 document.getElementById('investor-status').value = investor.status || 'Activo';
             }
@@ -41,12 +56,21 @@ const attachModalListeners = () => {
                 form.action = `/investments/${investment.id}`;
                 document.getElementById('investment-investor').value = investment.investor_id;
                 document.getElementById('investment-code').value = investment.code;
-                document.getElementById('investment-amount').value = investment.amount_usd;
+                document.getElementById('investment-amount').value = investment.amount_cop;
                 document.getElementById('investment-rate').value = investment.monthly_rate;
-                document.getElementById('investment-gains').value = investment.gains_cop;
-                document.getElementById('investment-start').value = investment.start_date;
-                document.getElementById('investment-next').value = investment.next_liquidation_date || '';
+                document.getElementById('investment-start').value = normalizeDateInput(investment.start_date);
+                document.getElementById('investment-end').value = normalizeDateInput(investment.end_date);
                 document.getElementById('investment-status').value = investment.status;
+                const updatedAtLabel = document.getElementById('investment-updated-at');
+                if (updatedAtLabel) {
+                    updatedAtLabel.textContent = investment.updated_at
+                        ? new Date(investment.updated_at).toLocaleString('es-CO')
+                        : '—';
+                }
+                const updatedByLabel = document.getElementById('investment-updated-by');
+                if (updatedByLabel) {
+                    updatedByLabel.textContent = investment.updated_by_name || investment.updated_by || 'No registrado';
+                }
             }
 
             if (target === 'transaction-edit' && btn.dataset.transaction) {
