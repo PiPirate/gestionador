@@ -35,8 +35,8 @@ class InvestmentsController extends Controller
         $summary = [
             'total_cop' => Investment::where('status', 'activa')->sum('amount_cop'),
             'avg_return' => round(Investment::avg('monthly_rate') ?? 0, 2),
-            'accumulated' => $investments->sum(fn (Investment $investment) => $investment->accumulatedGainCop()),
-            'next_liquidations' => $investments->where('status', 'pendiente')->count(),
+            'accumulated' => $investments->sum(fn (Investment $investment) => $investment->dailyGainCop()),
+            'monthly_projection' => $investments->sum(fn (Investment $investment) => $investment->monthlyEstimatedGainCop()),
         ];
 
         $investors = Investor::orderBy('name')->get();
