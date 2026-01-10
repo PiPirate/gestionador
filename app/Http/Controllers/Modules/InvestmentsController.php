@@ -42,7 +42,7 @@ class InvestmentsController extends Controller
             'accumulated' => $investments->sum(fn (Investment $investment) => $investment->accumulatedGainCop()),
             'next_liquidations' => $monthly_from_daily,
         ];
-        
+
         $investors = Investor::orderBy('name')->get();
 
         return view('modules.investments.index', compact('investments', 'summary', 'investors'));
