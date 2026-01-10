@@ -32,13 +32,17 @@ class InvestmentsController extends Controller
 
         $investments = $query->orderByDesc('start_date')->get();
 
+        $monthly_from_daily = $investments
+            ->where('status', 'activa')
+            ->sum(fn (Investment $investment) => $investment->dailyGainCop()) * 30;
+
         $summary = [
             'total_cop' => Investment::where('status', 'activa')->sum('amount_cop'),
             'avg_return' => round(Investment::avg('monthly_rate') ?? 0, 2),
             'accumulated' => $investments->sum(fn (Investment $investment) => $investment->accumulatedGainCop()),
-            'next_liquidations' => $investments->where('status', 'pendiente')->count(),
+            'next_liquidations' => $monthly_from_daily,
         ];
-
+        
         $investors = Investor::orderBy('name')->get();
 
         return view('modules.investments.index', compact('investments', 'summary', 'investors'));

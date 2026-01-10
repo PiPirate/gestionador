@@ -33,10 +33,10 @@
                 <div class="text-3xl font-bold text-green-700">{{ number_format($summary['avg_return'], 2) }}%</div>
                 <p class="text-xs text-green-600 mt-2">Promedio ponderado</p>
             </x-modules.card>
-            <x-modules.card title="Ganancias Progresivas">
+            <x-modules.card title="Intereses Acumulados">
                 <div class="text-3xl font-bold text-gray-900">
                     {{ \App\Support\Currency::format($summary['accumulated'], 'cop') }}</div>
-                <p class="text-xs text-green-600 mt-2">Calculadas al día</p>
+                <p class="text-xs text-green-600 mt-2">Calculados al día</p>
             </x-modules.card>
             <x-modules.card title="Inversiones Pendientes">
                 <div class="text-3xl font-bold text-gray-900">{{ $summary['next_liquidations'] }}</div>
