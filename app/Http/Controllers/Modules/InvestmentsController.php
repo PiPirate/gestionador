@@ -32,10 +32,21 @@ class InvestmentsController extends Controller
 
         $investments = $query->orderByDesc('start_date')->get();
 
+        // CAMBIO: suma real de ganancia diaria (de las activas) para "Ganancias Progresivas"
+        $daily_progressive = $investments
+            ->where('status', 'activa')
+            ->sum(fn (Investment $investment) => $investment->dailyGainCop());
+
         $summary = [
             'total_cop' => Investment::where('status', 'activa')->sum('amount_cop'),
             'avg_return' => round(Investment::avg('monthly_rate') ?? 0, 2),
+
+            // NUEVO
+            'daily_progressive' => $daily_progressive,
+
+            // Se deja igual (pero ahora accumulatedGainCop usa dailyGainCop internamente)
             'accumulated' => $investments->sum(fn (Investment $investment) => $investment->accumulatedGainCop()),
+
             'next_liquidations' => $investments->where('status', 'pendiente')->count(),
         ];
 
