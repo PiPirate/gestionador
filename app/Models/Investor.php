@@ -61,9 +61,9 @@ class Investor extends Model
         }
 
         $startDate = $this->investments->min('start_date');
-        $endDate = $this->investments->max('end_date');
+        $endDate = Carbon::today();
 
-        if (!$startDate || !$endDate) {
+        if (!$startDate) {
             return 0;
         }
 
