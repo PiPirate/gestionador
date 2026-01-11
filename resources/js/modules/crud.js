@@ -28,7 +28,7 @@ const parseCopValue = (value) => {
     if (raw.includes(',')) {
         return Number(raw.replace(/\./g, '').replace(',', '.'));
     }
-    return Number(raw.replace(/,/g, ''));
+    return Number(raw.replace(/\./g, '').replace(/,/g, ''));
 };
 
 const formatNumericInput = (input) => {
