@@ -4,16 +4,14 @@ namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
 use App\Models\Investor;
-use App\Models\Investment;
 use App\Services\AuditLogger;
-use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
 class InvestorsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Investor::query();
+        $query = Investor::query()->with('investments');
 
         if ($request->filled('q')) {
             $query->where(function ($q) use ($request) {
@@ -40,7 +38,6 @@ class InvestorsController extends Controller
             'document' => 'required|string|max:255',
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:255',
-            'capital_usd' => 'nullable|numeric',
             'monthly_rate' => 'nullable|numeric',
             'status' => 'required|string',
         ]);
@@ -50,16 +47,11 @@ class InvestorsController extends Controller
             'document' => $data['document'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
-            'capital_usd' => $data['capital_usd'] ?? 0,
             'monthly_rate' => $data['monthly_rate'] ?? 0,
             'status' => $data['status'],
         ]);
 
         AuditLogger::log('Crear inversor', $investor, $data);
-
-        if (!empty($data['capital_usd']) && $data['capital_usd'] > 0) {
-            $this->createInitialInvestment($investor, $data['capital_usd'], $data['monthly_rate'] ?? 0);
-        }
 
         return redirect()->route('investors.index')->with('status', 'Inversor creado');
     }
@@ -71,7 +63,6 @@ class InvestorsController extends Controller
             'document' => 'required|string|max:255',
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:255',
-            'capital_usd' => 'nullable|numeric',
             'monthly_rate' => 'nullable|numeric',
             'status' => 'required|string',
         ]);
@@ -81,7 +72,6 @@ class InvestorsController extends Controller
             'document' => $data['document'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
-            'capital_usd' => $data['capital_usd'] ?? 0,
             'monthly_rate' => $data['monthly_rate'] ?? 0,
             'status' => $data['status'],
         ]);
@@ -98,22 +88,21 @@ class InvestorsController extends Controller
         return redirect()->route('investors.index')->with('status', 'Inversor eliminado');
     }
 
-    private function createInitialInvestment(Investor $investor, float $capitalUsd, float $monthlyRate): void
+    public function show(Investor $investor)
     {
-        $sequence = $investor->investments()->count() + 1;
-        $code = $investor->id . $sequence;
+        $investor->load('investments');
+        $investments = $investor->investments->sortByDesc('start_date');
 
-        $investment = Investment::create([
-            'investor_id' => $investor->id,
-            'code' => $code,
-            'amount_usd' => $capitalUsd,
-            'monthly_rate' => $monthlyRate,
-            'start_date' => Carbon::now()->toDateString(),
-            'gains_cop' => 0,
-            'next_liquidation_date' => null,
-            'status' => 'activa',
-        ]);
+        $summary = [
+            'total_invested' => $investor->totalInvestedCop(),
+            'total_withdrawn' => $investor->totalWithdrawnCop(),
+            'total_gains' => $investor->totalGainsCop(),
+            'total_days' => $investor->totalDaysInvested(),
+            'capital_in_circulation' => $investor->investments
+                ->where('status', 'activa')
+                ->sum('amount_cop'),
+        ];
 
-        AuditLogger::log('Crear inversión inicial', $investment, ['investor_id' => $investor->id, 'code' => $code]);
+        return view('modules.investors.show', compact('investor', 'investments', 'summary'));
     }
 }
