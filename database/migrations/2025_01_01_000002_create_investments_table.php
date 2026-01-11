@@ -11,12 +11,13 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('investor_id')->constrained()->cascadeOnDelete();
             $table->string('code')->unique();
-            $table->decimal('amount_usd', 12, 2);
+            $table->decimal('amount_cop', 15, 2);
             $table->decimal('monthly_rate', 5, 2)->default(0);
             $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->decimal('gains_cop', 15, 2)->default(0);
-            $table->date('next_liquidation_date')->nullable();
             $table->string('status')->default('activa');
+            $table->timestamp('closed_at')->nullable();
             $table->timestamps();
         });
     }
