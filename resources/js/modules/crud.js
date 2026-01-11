@@ -23,6 +23,31 @@ const setTableLoading = (tableRoot, loading) => {
     }
 };
 
+const formatNumericInput = (input) => {
+    const type = input.dataset.format || 'number';
+    const raw = input.value.replace(/[^\d,.-]/g, '');
+    const normalized = raw.replace(/\./g, '').replace(',', '.');
+    const number = Number(normalized);
+    if (Number.isNaN(number)) {
+        return;
+    }
+    const options = type === 'percent'
+        ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        : { minimumFractionDigits: 0, maximumFractionDigits: 0 };
+    input.value = new Intl.NumberFormat('es-CO', options).format(number);
+};
+
+const bindNumericFormatting = (root = document) => {
+    root.querySelectorAll('[data-format]').forEach((input) => {
+        if (input.dataset.bound) {
+            return;
+        }
+        input.dataset.bound = 'true';
+        input.addEventListener('input', () => formatNumericInput(input));
+        input.addEventListener('blur', () => formatNumericInput(input));
+    });
+};
+
 const normalizeDateInput = (value) => {
     if (!value) {
         return '';
@@ -83,6 +108,7 @@ const refreshTableTarget = async (url, targetSelector) => {
         currentTable.innerHTML = nextTable.innerHTML;
         attachTableHandlers(currentTable);
         attachModalListeners(currentTable);
+        bindNumericFormatting(currentTable);
     }
 };
 
@@ -301,4 +327,5 @@ const attachModalListeners = (root = document) => {
 document.addEventListener('DOMContentLoaded', () => {
     attachModalListeners();
     attachTableHandlers();
+    bindNumericFormatting();
 });

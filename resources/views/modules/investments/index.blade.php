@@ -128,9 +128,11 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <x-text-input name="amount_cop" type="number" step="0.01" placeholder="Monto (COP)" class="w-full"
+                    <x-text-input name="amount_cop" type="text" placeholder="Monto (COP)" class="w-full"
+                        data-format="cop"
                         required />
-                    <x-text-input name="monthly_rate" type="number" step="0.01" placeholder="% mensual" class="w-full"
+                    <x-text-input name="monthly_rate" type="text" placeholder="% mensual" class="w-full"
+                        data-format="percent"
                         required />
                 </div>
                 <div>
@@ -178,10 +180,10 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <x-text-input name="amount_cop" id="investment-amount" type="number" step="0.01"
-                        placeholder="Monto (COP)" class="w-full" required />
-                    <x-text-input name="monthly_rate" id="investment-rate" type="number" step="0.01"
-                        placeholder="% mensual" class="w-full" required />
+                    <x-text-input name="amount_cop" id="investment-amount" type="text"
+                        placeholder="Monto (COP)" class="w-full" data-format="cop" required />
+                    <x-text-input name="monthly_rate" id="investment-rate" type="text"
+                        placeholder="% mensual" class="w-full" data-format="percent" required />
                 </div>
                 <div>
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fechas de inversión</p>
