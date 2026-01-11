@@ -24,18 +24,16 @@ const setTableLoading = (tableRoot, loading) => {
 };
 
 const formatNumericInput = (input) => {
-    const type = input.dataset.format || 'number';
     const raw = input.value.replace(/[^\d,.-]/g, '');
     const normalized = raw.replace(/\./g, '').replace(',', '.');
     const number = Number(normalized);
     if (Number.isNaN(number)) {
         return;
     }
-    const options = type === 'percent'
-        ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-        : { minimumFractionDigits: 0, maximumFractionDigits: 0 };
-    input.value = new Intl.NumberFormat('es-CO', options).format(number);
+    input.value = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(number);
 };
+
+const normalizeNumericValue = (value) => value.replace(/\./g, '').replace(',', '.');
 
 const bindNumericFormatting = (root = document) => {
     root.querySelectorAll('[data-format]').forEach((input) => {
@@ -45,6 +43,16 @@ const bindNumericFormatting = (root = document) => {
         input.dataset.bound = 'true';
         input.addEventListener('input', () => formatNumericInput(input));
         input.addEventListener('blur', () => formatNumericInput(input));
+
+        const form = input.closest('form');
+        if (form && !form.dataset.normalizeBound) {
+            form.dataset.normalizeBound = 'true';
+            form.addEventListener('submit', () => {
+                form.querySelectorAll('[data-format]').forEach((field) => {
+                    field.value = normalizeNumericValue(field.value);
+                });
+            });
+        }
     });
 };
 
@@ -188,7 +196,9 @@ const attachModalListeners = (root = document) => {
                 form.action = `/investments/${investment.id}`;
                 document.getElementById('investment-investor').value = investment.investor_id;
                 document.getElementById('investment-code').value = investment.code;
-                document.getElementById('investment-amount').value = investment.amount_cop;
+                const amountInput = document.getElementById('investment-amount');
+                amountInput.value = investment.amount_cop;
+                formatNumericInput(amountInput);
                 document.getElementById('investment-rate').value = investment.monthly_rate;
                 document.getElementById('investment-start').value = normalizeDateInput(investment.start_date);
                 document.getElementById('investment-end').value = normalizeDateInput(investment.end_date);

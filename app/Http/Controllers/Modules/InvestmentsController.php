@@ -28,6 +28,8 @@ class InvestmentsController extends Controller
 
         if ($request->filled('status') && $request->status !== 'todas') {
             $query->where('status', $request->status);
+        } else {
+            $query->where('status', '!=', 'cerrada');
         }
 
         $investments = $query->orderByDesc('start_date')->get();

@@ -87,8 +87,8 @@
                 <x-text-input name="document" placeholder="Documento" class="w-full" required />
                 <x-text-input name="email" type="email" placeholder="Email" class="w-full" />
                 <x-text-input name="phone" placeholder="Teléfono" class="w-full" />
-                <x-text-input name="monthly_rate" type="text" placeholder="% mensual"
-                    class="w-full" data-format="percent" />
+                <x-text-input name="monthly_rate" type="number" step="0.01" placeholder="% mensual"
+                    class="w-full" />
                 <select name="status" class="border rounded-md px-3 py-2 w-full">
                     <option value="Activo">Activo</option>
                     <option value="Pendiente">Pendiente</option>
@@ -110,8 +110,8 @@
                 <x-text-input name="document" id="investor-document" placeholder="Documento" class="w-full" required />
                 <x-text-input name="email" id="investor-email" type="email" placeholder="Email" class="w-full" />
                 <x-text-input name="phone" id="investor-phone" placeholder="Teléfono" class="w-full" />
-                <x-text-input name="monthly_rate" id="investor-monthly" type="text"
-                    placeholder="% mensual" class="w-full" data-format="percent" />
+                <x-text-input name="monthly_rate" id="investor-monthly" type="number" step="0.01"
+                    placeholder="% mensual" class="w-full" />
                 <select name="status" id="investor-status" class="border rounded-md px-3 py-2 w-full">
                     <option value="Activo">Activo</option>
                     <option value="Pendiente">Pendiente</option>
