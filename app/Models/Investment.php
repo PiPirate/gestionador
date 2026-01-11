@@ -36,18 +36,17 @@ class Investment extends Model
 
     public function dailyGainCop(): float
     {
-        if ($this->amount_cop <= 0) {
+        $monthlyInterest = $this->monthlyInterestCop();
+        if ($monthlyInterest <= 0) {
             return 0.0;
         }
 
-        $totalDays = $this->totalInvestmentDays();
-        if ($totalDays <= 0) {
+        $monthDays = $this->monthDays();
+        if ($monthDays <= 0) {
             return 0.0;
         }
 
-        $dailyRate = ($this->totalProjectedGainCop() / $this->amount_cop) / $totalDays;
-
-        return $this->amount_cop * $dailyRate;
+        return $monthlyInterest / $monthDays;
     }
 
     public function accumulatedGainCop(?Carbon $asOf = null): float
@@ -57,16 +56,15 @@ class Investment extends Model
         }
 
         $end = $this->resolvedEndDate($asOf);
-        $totalDays = $this->totalInvestmentDays();
-        if ($totalDays <= 0) {
+        $monthDays = $this->monthDays();
+        if ($monthDays <= 0) {
             return 0.0;
         }
 
         $daysElapsed = max(0, $this->start_date->diffInDays($end, false) + 1);
-        $daysElapsed = min($daysElapsed, $totalDays);
-        $dailyRate = ($this->totalProjectedGainCop() / $this->amount_cop) / $totalDays;
+        $daysElapsed = min($daysElapsed, $this->totalInvestmentDays());
 
-        return $this->amount_cop * $dailyRate * $daysElapsed;
+        return $this->dailyGainCop() * $daysElapsed;
     }
 
     public function monthlyEstimatedGainCop(): float
@@ -76,11 +74,15 @@ class Investment extends Model
 
     public function totalProjectedGainCop(): float
     {
-        if ($this->amount_cop <= 0) {
+        $monthlyInterest = $this->monthlyInterestCop();
+        $monthDays = $this->monthDays();
+        $activeDays = $this->totalInvestmentDays();
+
+        if ($monthlyInterest <= 0 || $monthDays <= 0 || $activeDays <= 0) {
             return 0.0;
         }
 
-        return $this->amount_cop * ($this->monthly_rate / 100);
+        return ($monthlyInterest / $monthDays) * $activeDays;
     }
 
     public function daysInvested(?Carbon $asOf = null): int
@@ -101,6 +103,28 @@ class Investment extends Model
         }
 
         return max(0, $this->start_date->diffInDays($this->end_date, false) + 1);
+    }
+
+    public function monthDays(): int
+    {
+        if ($this->end_date) {
+            return $this->end_date->daysInMonth;
+        }
+
+        if ($this->start_date) {
+            return $this->start_date->daysInMonth;
+        }
+
+        return 0;
+    }
+
+    public function monthlyInterestCop(): float
+    {
+        if ($this->amount_cop <= 0) {
+            return 0.0;
+        }
+
+        return $this->amount_cop * ($this->monthly_rate / 100);
     }
 
     private function resolvedEndDate(?Carbon $asOf = null): Carbon

@@ -23,17 +23,26 @@ const setTableLoading = (tableRoot, loading) => {
     }
 };
 
+const parseCopValue = (value) => {
+    const raw = value.replace(/[^\d,.-]/g, '');
+    if (raw.includes(',')) {
+        return Number(raw.replace(/\./g, '').replace(',', '.'));
+    }
+    return Number(raw.replace(/,/g, ''));
+};
+
 const formatNumericInput = (input) => {
-    const raw = input.value.replace(/[^\d,.-]/g, '');
-    const normalized = raw.replace(/\./g, '').replace(',', '.');
-    const number = Number(normalized);
+    const number = parseCopValue(input.value);
     if (Number.isNaN(number)) {
         return;
     }
     input.value = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(number);
 };
 
-const normalizeNumericValue = (value) => value.replace(/\./g, '').replace(',', '.');
+const normalizeNumericValue = (value) => {
+    const number = parseCopValue(value);
+    return Number.isNaN(number) ? value : number.toString();
+};
 
 const normalizeFormNumericFields = (form) => {
     form.querySelectorAll('[data-format]').forEach((field) => {
