@@ -21,6 +21,64 @@ const normalizeDateInput = (value) => {
     return value;
 };
 
+const parseCellValue = (value) => {
+    const normalized = value.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
+    const numeric = Number(normalized);
+    if (!Number.isNaN(numeric) && normalized !== '') {
+        return { type: 'number', value: numeric };
+    }
+    return { type: 'string', value: value.toLowerCase() };
+};
+
+const sortTableRows = (tableBody, columnIndex, direction) => {
+    const rows = Array.from(tableBody.querySelectorAll('[data-row]'));
+    rows.sort((a, b) => {
+        const aCell = a.querySelectorAll('[data-cell]')[columnIndex];
+        const bCell = b.querySelectorAll('[data-cell]')[columnIndex];
+        const aValue = parseCellValue(aCell?.textContent?.trim() || '');
+        const bValue = parseCellValue(bCell?.textContent?.trim() || '');
+        if (aValue.type === 'number' && bValue.type === 'number') {
+            return direction === 'desc' ? bValue.value - aValue.value : aValue.value - bValue.value;
+        }
+        if (aValue.value < bValue.value) {
+            return direction === 'desc' ? 1 : -1;
+        }
+        if (aValue.value > bValue.value) {
+            return direction === 'desc' ? -1 : 1;
+        }
+        return 0;
+    });
+    rows.forEach((row) => tableBody.appendChild(row));
+};
+
+const refreshTableTarget = async (url, targetSelector) => {
+    const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    if (!response.ok) {
+        return;
+    }
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const nextTable = doc.querySelector(targetSelector);
+    const currentTable = document.querySelector(targetSelector);
+    if (nextTable && currentTable) {
+        currentTable.replaceWith(nextTable);
+        attachTableHandlers(nextTable);
+    }
+};
+
+const attachTableHandlers = (root = document) => {
+    root.querySelectorAll('[data-table-sort]').forEach((select) => {
+        select.addEventListener('change', () => {
+            const tableBody = select.closest('[data-table-root]')?.querySelector('[data-table-body]');
+            const columnIndex = Number(select.dataset.sortColumn || 0);
+            if (tableBody) {
+                sortTableRows(tableBody, columnIndex, select.value);
+            }
+        });
+    });
+};
+
 const attachModalListeners = () => {
     document.querySelectorAll('[data-modal-target]').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -133,6 +191,44 @@ const attachModalListeners = () => {
             btn.closest('.fixed')?.classList.add('hidden');
         });
     });
+
+    document.querySelectorAll('[data-table-filter]').forEach((form) => {
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const targetSelector = form.dataset.tableTarget;
+            if (!targetSelector) {
+                return;
+            }
+            const url = new URL(form.action || window.location.href, window.location.origin);
+            const formData = new FormData(form);
+            formData.forEach((value, key) => {
+                url.searchParams.set(key, value.toString());
+            });
+            await refreshTableTarget(url.toString(), targetSelector);
+        });
+    });
+
+    document.querySelectorAll('[data-table-update]').forEach((form) => {
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const targetSelector = form.dataset.tableTarget;
+            if (!targetSelector) {
+                return;
+            }
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData,
+            });
+            if (response.ok) {
+                await refreshTableTarget(window.location.href, targetSelector);
+            }
+        });
+    });
 };
 
-document.addEventListener('DOMContentLoaded', attachModalListeners);
+document.addEventListener('DOMContentLoaded', () => {
+    attachModalListeners();
+    attachTableHandlers();
+});

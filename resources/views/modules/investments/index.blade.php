@@ -7,7 +7,7 @@
                 <p class="text-sm text-gray-600 mt-1">Gestión detallada de todas las inversiones</p>
             </div>
             <div class="flex items-center gap-3">
-                <form method="GET" class="flex items-center gap-2">
+                <form method="GET" class="flex items-center gap-2" data-table-filter data-table-target="#investments-table">
                     <select name="status" class="border rounded-md px-3 py-2 text-sm">
                         <option value="todas" {{ request('status', 'todas') === 'todas' ? 'selected' : '' }}>Todas</option>
                         <option value="pendiente" {{ request('status') === 'pendiente' ? 'selected' : '' }}>Pendientes</option>
@@ -16,6 +16,10 @@
                     </select>
                     <button class="px-3 py-2 text-sm border rounded-md">Filtrar</button>
                 </form>
+                <select class="border rounded-md px-3 py-2 text-sm" data-table-sort data-sort-column="0">
+                    <option value="asc">Ordenar A → Z</option>
+                    <option value="desc">Ordenar Z → A</option>
+                </select>
                 <button data-modal-target="investment-create"
                     class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">
                     <x-heroicon-o-plus class="w-5 h-5" />
@@ -44,7 +48,7 @@
                 <p class="text-xs text-gray-500 mt-2">Proyección a 30 días</p>
             </x-modules.card>
         </div>
-        <x-modules.card>
+        <x-modules.card id="investments-table" data-table-root>
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-sm font-semibold text-gray-900">Listado de inversiones</h3>
                 <p class="text-sm text-gray-500">Mostrando {{ $investments->count() }} inversiones</p>
@@ -60,21 +64,20 @@
                 <span>Proyección mes</span>
                 <span>Estado</span>
             </div>
-            <div class="divide-y divide-gray-100">
+            <div class="divide-y divide-gray-100" data-table-body>
                 @forelse ($investments as $investment)
-                    <div class="grid grid-cols-10 py-3 text-sm items-center">
-                        <span class="font-semibold text-gray-900">{{ $investment->code }}</span>
-                        <span class="text-gray-700">{{ $investment->investor?->name }}</span>
-                        <span
-                            class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->amount_cop, 'cop') }}</span>
-                        <span class="text-green-700 font-semibold">{{ number_format($investment->monthly_rate, 2) }}%</span>
-                        <span class="text-gray-700">{{ optional($investment->start_date)->format('d/m/Y') }}</span>
-                        <span
-                            class="text-gray-700">{{ optional($investment->end_date)->format('d/m/Y') ?? '—' }}</span>
-                        <span
-                            class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->dailyGainCop(), 'cop') }}</span>
-                        <span
-                            class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($investment->monthlyEstimatedGainCop(), 'cop') }}</span>
+                    <div class="grid grid-cols-10 py-3 text-sm items-center" data-row>
+                        <span class="font-semibold text-gray-900" data-cell>{{ $investment->code }}</span>
+                        <span class="text-gray-700" data-cell>{{ $investment->investor?->name }}</span>
+                        <span class="text-gray-900 font-semibold" data-cell>
+                            {{ \App\Support\Currency::format($investment->amount_cop, 'cop') }}</span>
+                        <span class="text-green-700 font-semibold" data-cell>{{ number_format($investment->monthly_rate, 2) }}%</span>
+                        <span class="text-gray-700" data-cell>{{ optional($investment->start_date)->format('d/m/Y') }}</span>
+                        <span class="text-gray-700" data-cell>{{ optional($investment->end_date)->format('d/m/Y') ?? '—' }}</span>
+                        <span class="text-gray-900 font-semibold" data-cell>
+                            {{ \App\Support\Currency::format($investment->dailyGainCop(), 'cop') }}</span>
+                        <span class="text-gray-900 font-semibold" data-cell>
+                            {{ \App\Support\Currency::format($investment->monthlyEstimatedGainCop(), 'cop') }}</span>
                         <span class="flex items-center justify-end gap-2">
                             <span
                                 class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $investment->status === 'cerrada' ? 'bg-gray-100 text-gray-700' : ($investment->status === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700') }}">{{ ucfirst($investment->status) }}</span>
@@ -147,7 +150,7 @@
     <div id="modal-investment-edit" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
             <h3 class="text-lg font-semibold mb-4">Editar Inversión</h3>
-            <form method="POST" id="investment-edit-form" class="space-y-3">
+            <form method="POST" id="investment-edit-form" class="space-y-3" data-table-update data-table-target="#investments-table">
                 @csrf
                 @method('PUT')
                 <div class="grid grid-cols-2 gap-3">
