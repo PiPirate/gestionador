@@ -26,7 +26,7 @@
                 @forelse ($investments as $inv)
                     <div class="py-2 border-b border-gray-100 last:border-0">
                         <p class="font-semibold text-gray-900">{{ $inv->code }}</p>
-                        <p class="text-xs text-gray-500">{{ $inv->investor->name ?? '—' }} · {{ \App\Support\Currency::format($inv->amount_usd, 'usd') }}</p>
+                        <p class="text-xs text-gray-500">{{ $inv->investor->name ?? '—' }} · {{ \App\Support\Currency::format($inv->amount_cop, 'cop') }}</p>
                     </div>
                 @empty
                     <p class="text-sm text-gray-600">Sin resultados.</p>
