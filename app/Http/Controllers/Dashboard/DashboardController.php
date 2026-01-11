@@ -13,16 +13,16 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $capitalUsd = Investment::sum('amount_usd');
-        $capitalCop = Investment::sum('gains_cop') + Transaction::where('type', 'venta')->sum('amount_cop');
+        $capitalCop = Investment::sum('amount_cop');
+        $capitalLocal = Investment::sum('gains_cop') + Transaction::where('type', 'venta')->sum('amount_cop');
         $monthlyGain = Transaction::sum('profit_cop');
 
         $metrics = [
-            'capital_usd' => $capitalUsd,
             'capital_cop' => $capitalCop,
+            'capital_local' => $capitalLocal,
             'monthly_gain' => $monthlyGain,
             'investors_active' => Investor::count(),
-            'avg_investment' => Investment::avg('amount_usd') ?? 0,
+            'avg_investment' => Investment::avg('amount_cop') ?? 0,
             'avg_return' => Investment::avg('monthly_rate') ?? 0,
             'operations_month' => Transaction::count(),
         ];
@@ -36,7 +36,7 @@ class DashboardController extends Controller
                 'total' => $pendingTotal,
             ],
             'available_capital' => [
-                'usd' => max(0, $capitalUsd - Investment::where('status', 'activa')->sum('amount_usd')),
+                'cop' => max(0, $capitalCop - Investment::where('status', 'activa')->sum('amount_cop')),
                 'estimated_margin' => $monthlyGain,
             ],
             'investor_growth' => max(0, Investor::whereMonth('created_at', now()->month)->count()),
