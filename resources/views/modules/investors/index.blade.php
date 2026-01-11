@@ -58,7 +58,7 @@
                             <p class="text-xs text-gray-500">{{ $investor->phone ?? 'Sin teléfono' }}</p>
                         </div>
                         <span class="text-right font-semibold text-gray-900" data-cell>
-                            {{ \App\Support\Currency::format($investor->totalInvestedCop(), 'cop') }}</span>
+                            {{ \App\Support\Currency::format($investor->capital_in_circulation(), 'cop') }}</span>
                         <span class="text-right font-semibold text-gray-900" data-cell>
                             {{ \App\Support\Currency::format($investor->totalGainsCop(), 'cop') }}</span>
                         <div class="text-right space-x-2">
