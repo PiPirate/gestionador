@@ -23,7 +23,7 @@
                 <h3 class="text-sm font-semibold text-gray-900">Lista de Inversores</h3>
                 <p class="text-sm text-gray-500">Mostrando {{ $investors->count() }} inversores</p>
             </div>
-            <div class="grid grid-cols-6 text-xs font-semibold text-gray-500 pb-2">
+            <div class="grid grid-cols-6 text-xs font-semibold text-gray-500 pb-2" data-table-header>
                 <button type="button" class="text-left" data-sortable data-sort-column="0">
                     Inversor <span data-sort-arrow></span>
                 </button>
@@ -43,7 +43,7 @@
             </div>
             <div class="divide-y divide-gray-100" data-table-body>
                 @forelse ($investors as $investor)
-                    <div class="grid grid-cols-6 py-3 text-sm items-center" data-row>
+                    <div class="grid grid-cols-6 py-3 text-sm items-center" data-row data-index="{{ $loop->index }}">
                         <div data-cell>
                             <a href="{{ route('investors.show', $investor) }}"
                                 class="font-semibold text-gray-900 hover:underline">{{ $investor->name }}</a>

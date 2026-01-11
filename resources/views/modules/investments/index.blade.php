@@ -49,7 +49,7 @@
                 <h3 class="text-sm font-semibold text-gray-900">Listado de inversiones</h3>
                 <p class="text-sm text-gray-500">Mostrando {{ $investments->count() }} inversiones</p>
             </div>
-            <div class="grid grid-cols-10 text-xs font-semibold text-gray-500 pb-2">
+            <div class="grid grid-cols-10 text-xs font-semibold text-gray-500 pb-2" data-table-header>
                 <button type="button" class="text-left" data-sortable data-sort-column="0">
                     Inversión <span data-sort-arrow></span>
                 </button>
@@ -78,7 +78,7 @@
             </div>
             <div class="divide-y divide-gray-100" data-table-body>
                 @forelse ($investments as $investment)
-                    <div class="grid grid-cols-10 py-3 text-sm items-center" data-row>
+                    <div class="grid grid-cols-10 py-3 text-sm items-center" data-row data-index="{{ $loop->index }}">
                         <span class="font-semibold text-gray-900" data-cell>{{ $investment->code }}</span>
                         <span class="text-gray-700" data-cell>{{ $investment->investor?->name }}</span>
                         <span class="text-gray-900 font-semibold" data-cell>

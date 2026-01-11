@@ -5,6 +5,24 @@ const toggleModal = (id, show) => {
     }
 };
 
+const setTableLoading = (tableRoot, loading) => {
+    const tableBody = tableRoot?.querySelector('[data-table-body]');
+    if (!tableRoot || !tableBody) {
+        return;
+    }
+    if (loading) {
+        tableRoot.dataset.loading = 'true';
+        const columnCount = tableRoot.querySelectorAll('[data-table-header] [data-sortable], [data-table-header] span').length || 1;
+        tableBody.innerHTML = `
+            <div class="py-6 text-sm text-gray-500 animate-pulse" style="grid-column: span ${columnCount};">
+                Actualizando información...
+            </div>
+        `;
+    } else {
+        delete tableRoot.dataset.loading;
+    }
+};
+
 const normalizeDateInput = (value) => {
     if (!value) {
         return '';
@@ -81,15 +99,22 @@ const attachTableHandlers = (root = document) => {
             if (!tableBody) {
                 return;
             }
-            const nextDirection = header.dataset.sortDirection === 'asc' ? 'desc' : 'asc';
+            const currentDirection = header.dataset.sortDirection || '';
+            const nextDirection = currentDirection === 'asc' ? 'desc' : currentDirection === 'desc' ? '' : 'asc';
             header.dataset.sortDirection = nextDirection;
-            sortTableRows(tableBody, columnIndex, nextDirection);
+            if (nextDirection) {
+                sortTableRows(tableBody, columnIndex, nextDirection);
+            } else {
+                const originalRows = Array.from(tableBody.querySelectorAll('[data-row]'))
+                    .sort((a, b) => Number(a.dataset.index || 0) - Number(b.dataset.index || 0));
+                originalRows.forEach((row) => tableBody.appendChild(row));
+            }
             tableRoot.querySelectorAll('[data-sortable]').forEach((item) => {
                 const arrow = item.querySelector('[data-sort-arrow]');
                 if (!arrow) {
                     return;
                 }
-                arrow.textContent = item === header ? (nextDirection === 'asc' ? '↑' : '↓') : '';
+                arrow.textContent = item === header && nextDirection ? (nextDirection === 'asc' ? '↑' : '↓') : '';
                 if (item !== header) {
                     item.dataset.sortDirection = '';
                 }
@@ -230,12 +255,15 @@ const attachModalListeners = (root = document) => {
             if (!targetSelector) {
                 return;
             }
+            const tableRoot = document.querySelector(targetSelector);
+            setTableLoading(tableRoot, true);
             const url = new URL(form.action || window.location.href, window.location.origin);
             const formData = new FormData(form);
             formData.forEach((value, key) => {
                 url.searchParams.set(key, value.toString());
             });
             await refreshTableTarget(url.toString(), targetSelector);
+            setTableLoading(tableRoot, false);
         });
     });
 
@@ -250,6 +278,12 @@ const attachModalListeners = (root = document) => {
             if (!targetSelector) {
                 return;
             }
+            const modalRoot = form.closest('.fixed');
+            if (modalRoot) {
+                modalRoot.classList.add('hidden');
+            }
+            const tableRoot = document.querySelector(targetSelector);
+            setTableLoading(tableRoot, true);
             const formData = new FormData(form);
             const response = await fetch(form.action, {
                 method: 'POST',
@@ -259,6 +293,7 @@ const attachModalListeners = (root = document) => {
             if (response.ok) {
                 await refreshTableTarget(window.location.href, targetSelector);
             }
+            setTableLoading(tableRoot, false);
         });
     });
 };
