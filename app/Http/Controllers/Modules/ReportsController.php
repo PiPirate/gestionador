@@ -42,7 +42,7 @@ class ReportsController extends Controller
             ],
             'investments' => [
                 'count' => Investment::count(),
-                'capital_usd' => Investment::sum('amount_usd'),
+                'capital_cop' => Investment::sum('amount_cop'),
                 'avg_rate' => Investment::avg('monthly_rate'),
             ],
             'liquidations' => [
@@ -56,8 +56,8 @@ class ReportsController extends Controller
             ],
         ];
 
-        $topInvestors = Investor::withSum('investments', 'amount_usd')
-            ->orderByDesc('investments_sum_amount_usd')
+        $topInvestors = Investor::withSum('investments', 'amount_cop')
+            ->orderByDesc('investments_sum_amount_cop')
             ->take(5)
             ->get();
 

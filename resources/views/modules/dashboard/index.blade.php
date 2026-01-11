@@ -41,7 +41,7 @@
                         <div>
                             <p class="text-sm font-semibold text-gray-900">Capital disponible</p>
                             <p class="text-sm text-gray-600">Tienes
-                                {{ \App\Support\Currency::format($cards['available_capital']['usd'], 'usd') }}
+                                {{ \App\Support\Currency::format($cards['available_capital']['cop'], 'cop') }}
                                 disponibles para nuevas operaciones. Margen de ganancia estimado:
                                 {{ \App\Support\Currency::format($cards['available_capital']['estimated_margin'], 'cop') }}
                             </p>
@@ -52,12 +52,12 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <x-modules.card title="Capital Total">
                     <div class="text-3xl font-bold text-gray-900">
-                        {{ \App\Support\Currency::format($metrics['capital_usd'], 'usd') }}</div>
+                        {{ \App\Support\Currency::format($metrics['capital_cop'], 'cop') }}</div>
                     <p class="text-xs text-green-600 mt-2">Comparativo mensual</p>
                 </x-modules.card>
                 <x-modules.card title="Valor en moneda local">
                     <div class="text-3xl font-bold text-gray-900">
-                        {{ \App\Support\Currency::format($metrics['capital_cop'], 'cop') }}</div>
+                        {{ \App\Support\Currency::format($metrics['capital_local'], 'cop') }}</div>
                     <p class="text-xs text-gray-600 mt-2">Basado en operaciones registradas</p>
                 </x-modules.card>
                 <x-modules.card title="Ganancias del Mes">
@@ -78,7 +78,7 @@
                 </x-modules.card>
                 <x-modules.card title="Inversión Promedio">
                     <div class="text-2xl font-bold text-gray-900">
-                        {{ \App\Support\Currency::format($metrics['avg_investment'], 'usd') }}</div>
+                        {{ \App\Support\Currency::format($metrics['avg_investment'], 'cop') }}</div>
                     <p class="text-xs text-gray-600 mt-2">Basado en inversiones activas</p>
                 </x-modules.card>
                 <x-modules.card title="Rendimiento Promedio">
