@@ -98,9 +98,8 @@ class InvestorsController extends Controller
             'total_withdrawn' => $investor->totalWithdrawnCop(),
             'total_gains' => $investor->totalGainsCop(),
             'total_days' => $investor->totalDaysInvested(),
-            'capital_in_circulation' => $investor->investments
-                ->where('status', 'activa')
-                ->sum('amount_cop'),
+            'capital_in_circulation' => $investor->capital_in_circulation(),
+
         ];
 
         return view('modules.investors.show', compact('investor', 'investments', 'summary'));

@@ -40,6 +40,23 @@ class Investor extends Model
         return $this->investments->sum('amount_cop');
     }
 
+    public function capital_in_circulation(): float
+    {
+        // Si ya viene cargada la relación (como en index: with('investments')),
+        // evitamos otra consulta
+        if ($this->relationLoaded('investments')) {
+            return (float) $this->investments
+                ->filter(fn ($inv) => strtolower((string) $inv->status) === 'activa')
+                ->sum('amount_cop');
+        }
+
+        // Si NO está cargada, lo calculamos por query
+        return (float) $this->investments()
+            ->whereIn('status', ['activa', 'Activa'])
+            ->sum('amount_cop');
+    }
+
+
     public function totalWithdrawnCop(): float
     {
         return $this->investments
