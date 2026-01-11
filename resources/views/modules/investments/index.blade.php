@@ -33,15 +33,15 @@
                 <div class="text-3xl font-bold text-green-700">{{ number_format($summary['avg_return'], 2) }}%</div>
                 <p class="text-xs text-green-600 mt-2">Promedio ponderado</p>
             </x-modules.card>
-            <x-modules.card title="Ganancias Diarias">
+            <x-modules.card title="Interés Diario">
                 <div class="text-3xl font-bold text-gray-900">
                     {{ \App\Support\Currency::format($summary['accumulated'], 'cop') }}</div>
                 <p class="text-xs text-green-600 mt-2">Total diario estimado</p>
             </x-modules.card>
-            <x-modules.card title="Ganancias Mensuales">
+            <x-modules.card title="Proyección Total">
                 <div class="text-3xl font-bold text-gray-900">
                     {{ \App\Support\Currency::format($summary['monthly_projection'], 'cop') }}</div>
-                <p class="text-xs text-gray-500 mt-2">Proyección a 30 días</p>
+                <p class="text-xs text-gray-500 mt-2">Total al cierre</p>
             </x-modules.card>
         </div>
         <x-modules.card id="investments-table" data-table-root>
@@ -49,34 +49,36 @@
                 <h3 class="text-sm font-semibold text-gray-900">Listado de inversiones</h3>
                 <p class="text-sm text-gray-500">Mostrando {{ $investments->count() }} inversiones</p>
             </div>
-            <div class="grid grid-cols-10 text-xs font-semibold text-gray-500 pb-2" data-table-header>
-                <button type="button" class="text-left" data-sortable data-sort-column="0">
-                    Inversión <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-left" data-sortable data-sort-column="1">
-                    Inversor <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-left" data-sortable data-sort-column="2">
-                    Monto <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-left" data-sortable data-sort-column="3">
-                    % Mensual <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-left" data-sortable data-sort-column="4">
-                    Fecha Inicio <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-left" data-sortable data-sort-column="5">
-                    Fecha Fin <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-left" data-sortable data-sort-column="6">
-                    Ganancia diaria <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-left" data-sortable data-sort-column="7">
-                    Proyección mes <span data-sort-arrow></span>
-                </button>
-                <span>Estado</span>
-            </div>
-            <div class="divide-y divide-gray-100" data-table-body>
+            <div class="overflow-x-auto">
+                <div class="min-w-[900px]">
+                    <div class="grid grid-cols-10 text-xs font-semibold text-gray-500 pb-2" data-table-header>
+                        <button type="button" class="text-left" data-sortable data-sort-column="0">
+                            Inversión <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-left" data-sortable data-sort-column="1">
+                            Inversor <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-left" data-sortable data-sort-column="2">
+                            Monto <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-left" data-sortable data-sort-column="3">
+                            % Mensual <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-left" data-sortable data-sort-column="4">
+                            Fecha Inicio <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-left" data-sortable data-sort-column="5">
+                            Fecha Fin <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-left" data-sortable data-sort-column="6">
+                            Interés diario <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-left" data-sortable data-sort-column="7">
+                            Proyección total <span data-sort-arrow></span>
+                        </button>
+                        <span>Estado</span>
+                    </div>
+                    <div class="divide-y divide-gray-100" data-table-body>
                 @forelse ($investments as $investment)
                     <div class="grid grid-cols-10 py-3 text-sm items-center" data-row data-index="{{ $loop->index }}">
                         <span class="font-semibold text-gray-900" data-cell>{{ $investment->code }}</span>
@@ -89,7 +91,7 @@
                         <span class="text-gray-900 font-semibold" data-cell>
                             {{ \App\Support\Currency::format($investment->dailyGainCop(), 'cop') }}</span>
                         <span class="text-gray-900 font-semibold" data-cell>
-                            {{ \App\Support\Currency::format($investment->monthlyEstimatedGainCop(), 'cop') }}</span>
+                            {{ \App\Support\Currency::format($investment->totalProjectedGainCop(), 'cop') }}</span>
                         <span class="flex items-center justify-end gap-2">
                             <span
                                 class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $investment->status === 'cerrada' ? 'bg-gray-100 text-gray-700' : ($investment->status === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700') }}">{{ ucfirst($investment->status) }}</span>
@@ -108,6 +110,8 @@
                 @empty
                     <p class="text-sm text-gray-500 py-4">No hay inversiones registradas.</p>
                 @endforelse
+                    </div>
+                </div>
             </div>
         </x-modules.card>
     </x-modules.shell>

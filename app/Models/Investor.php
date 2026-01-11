@@ -51,7 +51,7 @@ class Investor extends Model
     {
         return $this->investments
             ->where('status', 'cerrada')
-            ->sum(fn (Investment $investment) => $investment->monthlyEstimatedGainCop());
+            ->sum(fn (Investment $investment) => $investment->totalProjectedGainCop());
     }
 
     public function totalDaysInvested(): int

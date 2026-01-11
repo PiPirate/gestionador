@@ -34,18 +34,20 @@
                 <h3 class="text-sm font-semibold text-gray-900">Inversiones del inversor</h3>
                 <p class="text-sm text-gray-500">Total {{ $investments->count() }} inversiones</p>
             </div>
-            <div class="grid grid-cols-9 text-xs font-semibold text-gray-500 pb-2">
-                <span>Inversión</span>
-                <span>Monto</span>
-                <span>% Mensual</span>
-                <span>Inicio</span>
-                <span>Fin</span>
-                <span>Ganancia diaria</span>
-                <span>Proyección mensual</span>
-                <span>Días</span>
-                <span>Estado</span>
-            </div>
-            <div class="divide-y divide-gray-100">
+            <div class="overflow-x-auto">
+                <div class="min-w-[800px]">
+                    <div class="grid grid-cols-9 text-xs font-semibold text-gray-500 pb-2">
+                        <span>Inversión</span>
+                        <span>Monto</span>
+                        <span>% Mensual</span>
+                        <span>Inicio</span>
+                        <span>Fin</span>
+                        <span>Interés diario</span>
+                        <span>Proyección total</span>
+                        <span>Días</span>
+                        <span>Estado</span>
+                    </div>
+                    <div class="divide-y divide-gray-100">
                 @forelse ($investments as $investment)
                     <div class="grid grid-cols-9 py-3 text-sm items-center">
                         <span class="font-semibold text-gray-900">{{ $investment->code }}</span>
@@ -57,7 +59,7 @@
                         <span class="text-gray-900 font-semibold">
                             {{ \App\Support\Currency::format($investment->dailyGainCop(), 'cop') }}</span>
                         <span class="text-gray-900 font-semibold">
-                            {{ \App\Support\Currency::format($investment->monthlyEstimatedGainCop(), 'cop') }}</span>
+                            {{ \App\Support\Currency::format($investment->totalProjectedGainCop(), 'cop') }}</span>
                         <span class="text-gray-700">{{ $investment->totalInvestmentDays() }}</span>
                         <span class="text-right">
                             <span
@@ -67,6 +69,8 @@
                 @empty
                     <p class="text-sm text-gray-500 py-4">No hay inversiones asociadas.</p>
                 @endforelse
+                    </div>
+                </div>
             </div>
         </x-modules.card>
     </x-modules.shell>

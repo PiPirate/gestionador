@@ -23,25 +23,27 @@
                 <h3 class="text-sm font-semibold text-gray-900">Lista de Inversores</h3>
                 <p class="text-sm text-gray-500">Mostrando {{ $investors->count() }} inversores</p>
             </div>
-            <div class="grid grid-cols-6 text-xs font-semibold text-gray-500 pb-2" data-table-header>
-                <button type="button" class="text-left" data-sortable data-sort-column="0">
-                    Inversor <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-left" data-sortable data-sort-column="1">
-                    Documento <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-left" data-sortable data-sort-column="2">
-                    Contacto <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-right" data-sortable data-sort-column="3">
-                    Capital Invertido <span data-sort-arrow></span>
-                </button>
-                <button type="button" class="text-right" data-sortable data-sort-column="4">
-                    Ganancias Acum. <span data-sort-arrow></span>
-                </button>
-                <span class="text-right">Estado</span>
-            </div>
-            <div class="divide-y divide-gray-100" data-table-body>
+            <div class="overflow-x-auto">
+                <div class="min-w-[800px]">
+                    <div class="grid grid-cols-6 text-xs font-semibold text-gray-500 pb-2" data-table-header>
+                        <button type="button" class="text-left" data-sortable data-sort-column="0">
+                            Inversor <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-left" data-sortable data-sort-column="1">
+                            Documento <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-left" data-sortable data-sort-column="2">
+                            Contacto <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-right" data-sortable data-sort-column="3">
+                            Capital Invertido <span data-sort-arrow></span>
+                        </button>
+                        <button type="button" class="text-right" data-sortable data-sort-column="4">
+                            Ganancias Acum. <span data-sort-arrow></span>
+                        </button>
+                        <span class="text-right">Estado</span>
+                    </div>
+                    <div class="divide-y divide-gray-100" data-table-body>
                 @forelse ($investors as $investor)
                     <div class="grid grid-cols-6 py-3 text-sm items-center" data-row data-index="{{ $loop->index }}">
                         <div data-cell>
@@ -75,6 +77,8 @@
                 @empty
                     <p class="text-sm text-gray-500 py-4">No hay inversores registrados.</p>
                 @endforelse
+                    </div>
+                </div>
             </div>
         </x-modules.card>
     </x-modules.shell>

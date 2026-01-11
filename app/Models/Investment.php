@@ -45,7 +45,7 @@ class Investment extends Model
             return 0.0;
         }
 
-        $dailyRate = ($this->monthly_rate / 100) / $totalDays;
+        $dailyRate = ($this->totalProjectedGainCop() / $this->amount_cop) / $totalDays;
 
         return $this->amount_cop * $dailyRate;
     }
@@ -64,12 +64,17 @@ class Investment extends Model
 
         $daysElapsed = max(0, $this->start_date->diffInDays($end, false) + 1);
         $daysElapsed = min($daysElapsed, $totalDays);
-        $dailyRate = ($this->monthly_rate / 100) / $totalDays;
+        $dailyRate = ($this->totalProjectedGainCop() / $this->amount_cop) / $totalDays;
 
         return $this->amount_cop * $dailyRate * $daysElapsed;
     }
 
     public function monthlyEstimatedGainCop(): float
+    {
+        return $this->totalProjectedGainCop();
+    }
+
+    public function totalProjectedGainCop(): float
     {
         if ($this->amount_cop <= 0) {
             return 0.0;
