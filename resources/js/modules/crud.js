@@ -5,8 +5,105 @@ const toggleModal = (id, show) => {
     }
 };
 
-const attachModalListeners = () => {
-    document.querySelectorAll('[data-modal-target]').forEach((btn) => {
+const normalizeDateInput = (value) => {
+    if (!value) {
+        return '';
+    }
+
+    if (value.includes('T')) {
+        return value.split('T')[0];
+    }
+
+    if (value.includes(' ')) {
+        return value.split(' ')[0];
+    }
+
+    return value;
+};
+
+const parseCellValue = (value) => {
+    const normalized = value.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
+    const numeric = Number(normalized);
+    if (!Number.isNaN(numeric) && normalized !== '') {
+        return { type: 'number', value: numeric };
+    }
+    return { type: 'string', value: value.toLowerCase() };
+};
+
+const sortTableRows = (tableBody, columnIndex, direction) => {
+    const rows = Array.from(tableBody.querySelectorAll('[data-row]'));
+    rows.sort((a, b) => {
+        const aCell = a.querySelectorAll('[data-cell]')[columnIndex];
+        const bCell = b.querySelectorAll('[data-cell]')[columnIndex];
+        const aValue = parseCellValue(aCell?.textContent?.trim() || '');
+        const bValue = parseCellValue(bCell?.textContent?.trim() || '');
+        if (aValue.type === 'number' && bValue.type === 'number') {
+            return direction === 'desc' ? bValue.value - aValue.value : aValue.value - bValue.value;
+        }
+        if (aValue.value < bValue.value) {
+            return direction === 'desc' ? 1 : -1;
+        }
+        if (aValue.value > bValue.value) {
+            return direction === 'desc' ? -1 : 1;
+        }
+        return 0;
+    });
+    rows.forEach((row) => tableBody.appendChild(row));
+};
+
+const refreshTableTarget = async (url, targetSelector) => {
+    const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    if (!response.ok) {
+        return;
+    }
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const nextTable = doc.querySelector(targetSelector);
+    const currentTable = document.querySelector(targetSelector);
+    if (nextTable && currentTable) {
+        currentTable.innerHTML = nextTable.innerHTML;
+        attachTableHandlers(currentTable);
+        attachModalListeners(currentTable);
+    }
+};
+
+const attachTableHandlers = (root = document) => {
+    root.querySelectorAll('[data-sortable]').forEach((header) => {
+        if (header.dataset.bound) {
+            return;
+        }
+        header.dataset.bound = 'true';
+        header.addEventListener('click', () => {
+            const tableRoot = header.closest('[data-table-root]');
+            const tableBody = tableRoot?.querySelector('[data-table-body]');
+            const columnIndex = Number(header.dataset.sortColumn || 0);
+            if (!tableBody) {
+                return;
+            }
+            const nextDirection = header.dataset.sortDirection === 'asc' ? 'desc' : 'asc';
+            header.dataset.sortDirection = nextDirection;
+            sortTableRows(tableBody, columnIndex, nextDirection);
+            tableRoot.querySelectorAll('[data-sortable]').forEach((item) => {
+                const arrow = item.querySelector('[data-sort-arrow]');
+                if (!arrow) {
+                    return;
+                }
+                arrow.textContent = item === header ? (nextDirection === 'asc' ? '↑' : '↓') : '';
+                if (item !== header) {
+                    item.dataset.sortDirection = '';
+                }
+            });
+        });
+    });
+};
+
+const attachModalListeners = (root = document) => {
+    root.querySelectorAll('[data-modal-target]').forEach((btn) => {
+        if (btn.dataset.bound) {
+            return;
+        }
+        btn.dataset.bound = 'true';
         btn.addEventListener('click', () => {
             const target = btn.getAttribute('data-modal-target');
             toggleModal(target, true);
@@ -30,7 +127,6 @@ const attachModalListeners = () => {
                 document.getElementById('investor-document').value = investor.document;
                 document.getElementById('investor-email').value = investor.email || '';
                 document.getElementById('investor-phone').value = investor.phone || '';
-                document.getElementById('investor-capital').value = investor.capital_usd || 0;
                 document.getElementById('investor-monthly').value = investor.monthly_rate || 0;
                 document.getElementById('investor-status').value = investor.status || 'Activo';
             }
@@ -41,12 +137,21 @@ const attachModalListeners = () => {
                 form.action = `/investments/${investment.id}`;
                 document.getElementById('investment-investor').value = investment.investor_id;
                 document.getElementById('investment-code').value = investment.code;
-                document.getElementById('investment-amount').value = investment.amount_usd;
+                document.getElementById('investment-amount').value = investment.amount_cop;
                 document.getElementById('investment-rate').value = investment.monthly_rate;
-                document.getElementById('investment-gains').value = investment.gains_cop;
-                document.getElementById('investment-start').value = investment.start_date;
-                document.getElementById('investment-next').value = investment.next_liquidation_date || '';
+                document.getElementById('investment-start').value = normalizeDateInput(investment.start_date);
+                document.getElementById('investment-end').value = normalizeDateInput(investment.end_date);
                 document.getElementById('investment-status').value = investment.status;
+                const updatedAtLabel = document.getElementById('investment-updated-at');
+                if (updatedAtLabel) {
+                    updatedAtLabel.textContent = investment.updated_at
+                        ? new Date(investment.updated_at).toLocaleString('es-CO')
+                        : '—';
+                }
+                const updatedByLabel = document.getElementById('investment-updated-by');
+                if (updatedByLabel) {
+                    updatedByLabel.textContent = investment.updated_by_name || investment.updated_by || 'No registrado';
+                }
             }
 
             if (target === 'transaction-edit' && btn.dataset.transaction) {
@@ -104,11 +209,61 @@ const attachModalListeners = () => {
         });
     });
 
-    document.querySelectorAll('[data-close-modal]').forEach((btn) => {
+    root.querySelectorAll('[data-close-modal]').forEach((btn) => {
+        if (btn.dataset.bound) {
+            return;
+        }
+        btn.dataset.bound = 'true';
         btn.addEventListener('click', () => {
             btn.closest('.fixed')?.classList.add('hidden');
         });
     });
+
+    root.querySelectorAll('[data-table-filter]').forEach((form) => {
+        if (form.dataset.bound) {
+            return;
+        }
+        form.dataset.bound = 'true';
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const targetSelector = form.dataset.tableTarget;
+            if (!targetSelector) {
+                return;
+            }
+            const url = new URL(form.action || window.location.href, window.location.origin);
+            const formData = new FormData(form);
+            formData.forEach((value, key) => {
+                url.searchParams.set(key, value.toString());
+            });
+            await refreshTableTarget(url.toString(), targetSelector);
+        });
+    });
+
+    root.querySelectorAll('[data-table-update]').forEach((form) => {
+        if (form.dataset.bound) {
+            return;
+        }
+        form.dataset.bound = 'true';
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const targetSelector = form.dataset.tableTarget;
+            if (!targetSelector) {
+                return;
+            }
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData,
+            });
+            if (response.ok) {
+                await refreshTableTarget(window.location.href, targetSelector);
+            }
+        });
+    });
 };
 
-document.addEventListener('DOMContentLoaded', attachModalListeners);
+document.addEventListener('DOMContentLoaded', () => {
+    attachModalListeners();
+    attachTableHandlers();
+});
