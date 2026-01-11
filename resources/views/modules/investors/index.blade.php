@@ -85,7 +85,7 @@
     <div id="modal-investor-create" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
             <h3 class="text-lg font-semibold mb-4">Nuevo Inversor</h3>
-            <form method="POST" action="{{ route('investors.store') }}" class="space-y-3">
+            <form method="POST" action="{{ route('investors.store') }}" class="space-y-3" data-table-update data-table-target="#investors-table">
                 @csrf
                 <x-text-input name="name" placeholder="Nombre" class="w-full" required />
                 <x-text-input name="document" placeholder="Documento" class="w-full" required />

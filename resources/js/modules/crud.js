@@ -35,6 +35,12 @@ const formatNumericInput = (input) => {
 
 const normalizeNumericValue = (value) => value.replace(/\./g, '').replace(',', '.');
 
+const normalizeFormNumericFields = (form) => {
+    form.querySelectorAll('[data-format]').forEach((field) => {
+        field.value = normalizeNumericValue(field.value);
+    });
+};
+
 const bindNumericFormatting = (root = document) => {
     root.querySelectorAll('[data-format]').forEach((input) => {
         if (input.dataset.bound) {
@@ -47,11 +53,7 @@ const bindNumericFormatting = (root = document) => {
         const form = input.closest('form');
         if (form && !form.dataset.normalizeBound) {
             form.dataset.normalizeBound = 'true';
-            form.addEventListener('submit', () => {
-                form.querySelectorAll('[data-format]').forEach((field) => {
-                    field.value = normalizeNumericValue(field.value);
-                });
-            });
+            form.addEventListener('submit', () => normalizeFormNumericFields(form));
         }
     });
 };
@@ -320,6 +322,7 @@ const attachModalListeners = (root = document) => {
             }
             const tableRoot = document.querySelector(targetSelector);
             setTableLoading(tableRoot, true);
+            normalizeFormNumericFields(form);
             const formData = new FormData(form);
             const response = await fetch(form.action, {
                 method: 'POST',

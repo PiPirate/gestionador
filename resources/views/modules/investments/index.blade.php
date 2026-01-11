@@ -118,7 +118,7 @@
     <div id="modal-investment-create" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
             <h3 class="text-lg font-semibold mb-4">Nueva Inversión</h3>
-            <form method="POST" action="{{ route('investments.store') }}" class="space-y-3">
+            <form method="POST" action="{{ route('investments.store') }}" class="space-y-3" data-table-update data-table-target="#investments-table">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <select name="investor_id" class="border rounded-md px-3 py-2 w-full" required>
