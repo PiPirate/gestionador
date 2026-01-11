@@ -131,7 +131,8 @@
                     <x-text-input name="amount_cop" type="text" placeholder="Monto (COP)" class="w-full"
                         data-format="cop"
                         required />
-                    <x-text-input name="monthly_rate" type="number" step="0.01" placeholder="% mensual" class="w-full"
+                    <x-text-input name="monthly_rate" type="text" placeholder="% mensual" class="w-full"
+                        data-format="percent"
                         required />
                 </div>
                 <div>
