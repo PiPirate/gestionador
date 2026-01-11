@@ -50,6 +50,27 @@ const normalizeFormNumericFields = (form) => {
     });
 };
 
+const validateDateRange = (form) => {
+    const startField = form.querySelector('[data-date-start]');
+    const endField = form.querySelector('[data-date-end]');
+    if (!startField || !endField) {
+        return true;
+    }
+    if (!startField.value || !endField.value) {
+        return true;
+    }
+    const start = new Date(startField.value);
+    const end = new Date(endField.value);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return true;
+    }
+    if (start > end) {
+        alert('La fecha de inicio no puede ser mayor a la fecha de finalización.');
+        return false;
+    }
+    return true;
+};
+
 const bindNumericFormatting = (root = document) => {
     root.querySelectorAll('[data-format]').forEach((input) => {
         if (input.dataset.bound) {
@@ -226,6 +247,22 @@ const attachModalListeners = (root = document) => {
                 }
             }
 
+            if (target === 'investment-edit-investor' && btn.dataset.investment) {
+                const investment = JSON.parse(btn.dataset.investment);
+                const form = document.getElementById('investment-edit-investor-form');
+                if (form) {
+                    form.action = `/investments/${investment.id}`;
+                }
+                document.getElementById('investment-edit-code').value = investment.code;
+                const amountInput = document.getElementById('investment-edit-amount');
+                amountInput.value = investment.amount_cop;
+                formatNumericInput(amountInput);
+                document.getElementById('investment-edit-rate').value = investment.monthly_rate;
+                document.getElementById('investment-edit-start').value = normalizeDateInput(investment.start_date);
+                document.getElementById('investment-edit-end').value = normalizeDateInput(investment.end_date);
+                document.getElementById('investment-edit-status').value = investment.status;
+            }
+
             if (target === 'transaction-edit' && btn.dataset.transaction) {
                 const tx = JSON.parse(btn.dataset.transaction);
                 const form = document.getElementById('transaction-edit-form');
@@ -325,6 +362,9 @@ const attachModalListeners = (root = document) => {
             if (!targetSelector) {
                 return;
             }
+            if (!validateDateRange(form)) {
+                return;
+            }
             const modalRoot = form.closest('.fixed');
             if (modalRoot) {
                 modalRoot.classList.add('hidden');
@@ -342,6 +382,18 @@ const attachModalListeners = (root = document) => {
                 await refreshTableTarget(window.location.href, targetSelector);
             }
             setTableLoading(tableRoot, false);
+        });
+    });
+
+    root.querySelectorAll('[data-validate-dates]').forEach((form) => {
+        if (form.dataset.boundDates) {
+            return;
+        }
+        form.dataset.boundDates = 'true';
+        form.addEventListener('submit', (event) => {
+            if (!validateDateRange(form)) {
+                event.preventDefault();
+            }
         });
     });
 };
