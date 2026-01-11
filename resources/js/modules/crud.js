@@ -62,25 +62,48 @@ const refreshTableTarget = async (url, targetSelector) => {
     const nextTable = doc.querySelector(targetSelector);
     const currentTable = document.querySelector(targetSelector);
     if (nextTable && currentTable) {
-        currentTable.replaceWith(nextTable);
-        attachTableHandlers(nextTable);
+        currentTable.innerHTML = nextTable.innerHTML;
+        attachTableHandlers(currentTable);
+        attachModalListeners(currentTable);
     }
 };
 
 const attachTableHandlers = (root = document) => {
-    root.querySelectorAll('[data-table-sort]').forEach((select) => {
-        select.addEventListener('change', () => {
-            const tableBody = select.closest('[data-table-root]')?.querySelector('[data-table-body]');
-            const columnIndex = Number(select.dataset.sortColumn || 0);
-            if (tableBody) {
-                sortTableRows(tableBody, columnIndex, select.value);
+    root.querySelectorAll('[data-sortable]').forEach((header) => {
+        if (header.dataset.bound) {
+            return;
+        }
+        header.dataset.bound = 'true';
+        header.addEventListener('click', () => {
+            const tableRoot = header.closest('[data-table-root]');
+            const tableBody = tableRoot?.querySelector('[data-table-body]');
+            const columnIndex = Number(header.dataset.sortColumn || 0);
+            if (!tableBody) {
+                return;
             }
+            const nextDirection = header.dataset.sortDirection === 'asc' ? 'desc' : 'asc';
+            header.dataset.sortDirection = nextDirection;
+            sortTableRows(tableBody, columnIndex, nextDirection);
+            tableRoot.querySelectorAll('[data-sortable]').forEach((item) => {
+                const arrow = item.querySelector('[data-sort-arrow]');
+                if (!arrow) {
+                    return;
+                }
+                arrow.textContent = item === header ? (nextDirection === 'asc' ? '↑' : '↓') : '';
+                if (item !== header) {
+                    item.dataset.sortDirection = '';
+                }
+            });
         });
     });
 };
 
-const attachModalListeners = () => {
-    document.querySelectorAll('[data-modal-target]').forEach((btn) => {
+const attachModalListeners = (root = document) => {
+    root.querySelectorAll('[data-modal-target]').forEach((btn) => {
+        if (btn.dataset.bound) {
+            return;
+        }
+        btn.dataset.bound = 'true';
         btn.addEventListener('click', () => {
             const target = btn.getAttribute('data-modal-target');
             toggleModal(target, true);
@@ -186,13 +209,21 @@ const attachModalListeners = () => {
         });
     });
 
-    document.querySelectorAll('[data-close-modal]').forEach((btn) => {
+    root.querySelectorAll('[data-close-modal]').forEach((btn) => {
+        if (btn.dataset.bound) {
+            return;
+        }
+        btn.dataset.bound = 'true';
         btn.addEventListener('click', () => {
             btn.closest('.fixed')?.classList.add('hidden');
         });
     });
 
-    document.querySelectorAll('[data-table-filter]').forEach((form) => {
+    root.querySelectorAll('[data-table-filter]').forEach((form) => {
+        if (form.dataset.bound) {
+            return;
+        }
+        form.dataset.bound = 'true';
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             const targetSelector = form.dataset.tableTarget;
@@ -208,7 +239,11 @@ const attachModalListeners = () => {
         });
     });
 
-    document.querySelectorAll('[data-table-update]').forEach((form) => {
+    root.querySelectorAll('[data-table-update]').forEach((form) => {
+        if (form.dataset.bound) {
+            return;
+        }
+        form.dataset.bound = 'true';
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             const targetSelector = form.dataset.tableTarget;

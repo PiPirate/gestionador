@@ -24,11 +24,21 @@
                 <p class="text-sm text-gray-500">Mostrando {{ $investors->count() }} inversores</p>
             </div>
             <div class="grid grid-cols-6 text-xs font-semibold text-gray-500 pb-2">
-                <span>Inversor</span>
-                <span>Documento</span>
-                <span>Contacto</span>
-                <span class="text-right">Capital Invertido</span>
-                <span class="text-right">Ganancias Acum.</span>
+                <button type="button" class="text-left" data-sortable data-sort-column="0">
+                    Inversor <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-left" data-sortable data-sort-column="1">
+                    Documento <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-left" data-sortable data-sort-column="2">
+                    Contacto <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-right" data-sortable data-sort-column="3">
+                    Capital Invertido <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-right" data-sortable data-sort-column="4">
+                    Ganancias Acum. <span data-sort-arrow></span>
+                </button>
                 <span class="text-right">Estado</span>
             </div>
             <div class="divide-y divide-gray-100" data-table-body>

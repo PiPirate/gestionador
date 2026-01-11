@@ -16,10 +16,6 @@
                     </select>
                     <button class="px-3 py-2 text-sm border rounded-md">Filtrar</button>
                 </form>
-                <select class="border rounded-md px-3 py-2 text-sm" data-table-sort data-sort-column="0">
-                    <option value="asc">Ordenar A → Z</option>
-                    <option value="desc">Ordenar Z → A</option>
-                </select>
                 <button data-modal-target="investment-create"
                     class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">
                     <x-heroicon-o-plus class="w-5 h-5" />
@@ -54,14 +50,30 @@
                 <p class="text-sm text-gray-500">Mostrando {{ $investments->count() }} inversiones</p>
             </div>
             <div class="grid grid-cols-10 text-xs font-semibold text-gray-500 pb-2">
-                <span>Inversión</span>
-                <span>Inversor</span>
-                <span>Monto</span>
-                <span>% Mensual</span>
-                <span>Fecha Inicio</span>
-                <span>Fecha Fin</span>
-                <span>Ganancia diaria</span>
-                <span>Proyección mes</span>
+                <button type="button" class="text-left" data-sortable data-sort-column="0">
+                    Inversión <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-left" data-sortable data-sort-column="1">
+                    Inversor <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-left" data-sortable data-sort-column="2">
+                    Monto <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-left" data-sortable data-sort-column="3">
+                    % Mensual <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-left" data-sortable data-sort-column="4">
+                    Fecha Inicio <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-left" data-sortable data-sort-column="5">
+                    Fecha Fin <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-left" data-sortable data-sort-column="6">
+                    Ganancia diaria <span data-sort-arrow></span>
+                </button>
+                <button type="button" class="text-left" data-sortable data-sort-column="7">
+                    Proyección mes <span data-sort-arrow></span>
+                </button>
                 <span>Estado</span>
             </div>
             <div class="divide-y divide-gray-100" data-table-body>
