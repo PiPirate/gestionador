@@ -150,6 +150,20 @@ const refreshTableTarget = async (url, targetSelector) => {
         attachModalListeners(currentTable);
         bindNumericFormatting(currentTable);
     }
+    const refreshTargets = currentTable?.dataset.refreshTarget
+        ? currentTable.dataset.refreshTarget.split(',').map((target) => target.trim()).filter(Boolean)
+        : [];
+    refreshTargets.forEach((selector) => {
+        const nextTarget = doc.querySelector(selector);
+        const currentTarget = document.querySelector(selector);
+        if (!nextTarget || !currentTarget) {
+            return;
+        }
+        currentTarget.innerHTML = nextTarget.innerHTML;
+        attachTableHandlers(currentTarget);
+        attachModalListeners(currentTarget);
+        bindNumericFormatting(currentTarget);
+    });
 };
 
 const attachTableHandlers = (root = document) => {
