@@ -117,14 +117,22 @@
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">Código</label>
-                        <x-text-input value="Se genera automáticamente" class="w-full" disabled />
+                        <select name="continuation_id" class="border rounded-md px-3 py-2 w-full" data-continuation-select>
+                            <option value="">Nueva inversión (código automático)</option>
+                            @foreach ($continuableInvestments as $continuable)
+                                <option value="{{ $continuable->id }}">
+                                    Continuar {{ $continuable->code }} · Fin {{ optional($continuable->end_date)->format('d/m/Y') ?? '—' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-gray-400 mt-1">Al continuar, se conserva el mismo código.</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <x-text-input name="amount_cop" type="text" placeholder="Monto (COP)" class="w-full"
-                        data-format="cop" required />
+                        data-format="cop" data-continuation-field required />
                     <x-text-input name="monthly_rate" type="number" step="0.01" placeholder="% mensual" class="w-full"
-                        required />
+                        data-continuation-field required />
                 </div>
                 <div>
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fechas de inversión</p>
@@ -133,7 +141,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs text-gray-500">Fecha de inicio</label>
-                        <x-text-input name="start_date" type="date" class="w-full" data-date-start required />
+                        <x-text-input name="start_date" type="date" class="w-full" data-date-start data-continuation-field required />
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">Fecha de finalización</label>

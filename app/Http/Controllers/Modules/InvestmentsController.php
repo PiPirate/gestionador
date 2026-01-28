@@ -42,20 +42,57 @@ class InvestmentsController extends Controller
         ];
 
         $investors = Investor::orderBy('name')->get();
+        $continuableInvestments = Investment::with('investor')
+            ->where('status', '!=', 'cerrada')
+            ->orderByDesc('start_date')
+            ->get();
 
-        return view('modules.investments.index', compact('investments', 'summary', 'investors'));
+        return view('modules.investments.index', compact('investments', 'summary', 'investors', 'continuableInvestments'));
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $rules = [
             'investor_id' => 'required|exists:investors,id',
-            'amount_cop' => 'required|numeric|min:0',
-            'monthly_rate' => 'required|numeric',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'continuation_id' => 'nullable|exists:investments,id',
+            'amount_cop' => 'required_without:continuation_id|numeric|min:0',
+            'monthly_rate' => 'required_without:continuation_id|numeric',
+            'start_date' => 'required_without:continuation_id|date',
+            'end_date' => 'nullable|date',
             'status' => 'required|in:pendiente,activa,cerrada',
-        ]);
+        ];
+
+        if (!$request->filled('continuation_id')) {
+            $rules['end_date'] .= '|after_or_equal:start_date';
+        }
+
+        $data = $request->validate($rules);
+
+        if (!empty($data['continuation_id'])) {
+            $investment = Investment::findOrFail($data['continuation_id']);
+
+            if ($investment->investor_id !== (int) $data['investor_id']) {
+                return back()->withErrors(['continuation_id' => 'La inversión seleccionada no pertenece al inversor.']);
+            }
+
+            if ($investment->status === 'cerrada') {
+                return back()->withErrors(['continuation_id' => 'No puedes renovar una inversión cerrada.']);
+            }
+
+            if (!empty($data['end_date']) && $investment->end_date && $investment->end_date->greaterThan(Carbon::parse($data['end_date']))) {
+                return back()->withErrors(['end_date' => 'La fecha de finalización debe ser igual o posterior a la actual.']);
+            }
+
+            $nextEndDate = $data['end_date'] ?? $investment->end_date?->copy()->addMonthNoOverflow()->toDateString();
+            $nextEndDate = $nextEndDate ?? Carbon::now()->endOfMonth()->toDateString();
+
+            $investment->end_date = $nextEndDate;
+            $investment->save();
+
+            AuditLogger::log('Renovar inversión', $investment, $data);
+
+            return redirect()->route('investments.index')->with('status', 'Inversión renovada');
+        }
 
         $investor = Investor::findOrFail($data['investor_id']);
         $code = $this->generateCode($investor);
