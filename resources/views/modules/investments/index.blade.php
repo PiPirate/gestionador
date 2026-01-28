@@ -128,15 +128,26 @@
                         @endforeach
                     </select>
                     <div>
-                        <p class="text-xs text-gray-500">El código se genera automáticamente</p>
+                        <label class="text-xs text-gray-500">Código</label>
+                        <select name="continuation_id" class="border rounded-md px-3 py-2 w-full" data-continuation-select>
+                            <option value="">Nueva inversión (código automático)</option>
+                            @foreach ($continuableInvestments as $continuable)
+                                <option value="{{ $continuable->id }}">
+                                    Continuar {{ $continuable->code }} · {{ $continuable->investor?->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-gray-400 mt-1">Al continuar, se conserva el mismo código.</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <x-text-input name="amount_cop" type="text" placeholder="Monto (COP)" class="w-full"
                         data-format="cop"
+                        data-continuation-field
                         required />
                     <x-text-input name="monthly_rate" type="text" placeholder="% mensual" class="w-full"
                         data-format="percent"
+                        data-continuation-field
                         required />
                 </div>
                 <div>
@@ -146,7 +157,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs text-gray-500">Fecha de inicio</label>
-                        <x-text-input name="start_date" type="date" class="w-full" required />
+                        <x-text-input name="start_date" type="date" class="w-full" data-continuation-field required />
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">Fecha de finalización</label>

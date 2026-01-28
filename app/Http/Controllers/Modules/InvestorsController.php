@@ -90,8 +90,12 @@ class InvestorsController extends Controller
 
     public function show(Investor $investor)
     {
+        app(\App\Services\InvestmentLifecycleService::class)->closeExpiredInvestments();
         $investor->load('investments');
         $investments = $investor->investments->sortByDesc('start_date');
+        $continuableInvestments = $investor->investments
+            ->where('status', '!=', 'cerrada')
+            ->sortByDesc('start_date');
 
         $summary = [
             'total_invested' => $investor->totalInvestedCop(),
@@ -102,6 +106,6 @@ class InvestorsController extends Controller
 
         ];
 
-        return view('modules.investors.show', compact('investor', 'investments', 'summary'));
+        return view('modules.investors.show', compact('investor', 'investments', 'summary', 'continuableInvestments'));
     }
 }

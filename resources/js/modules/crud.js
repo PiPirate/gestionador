@@ -88,6 +88,39 @@ const bindNumericFormatting = (root = document) => {
     });
 };
 
+const attachContinuationToggles = (root = document) => {
+    root.querySelectorAll('[data-continuation-select]').forEach((select) => {
+        if (select.dataset.bound) {
+            return;
+        }
+        select.dataset.bound = 'true';
+        const form = select.closest('form');
+        if (!form) {
+            return;
+        }
+
+        const toggleFields = () => {
+            const fields = form.querySelectorAll('[data-continuation-field]');
+            const isContinuation = Boolean(select.value);
+            fields.forEach((field) => {
+                if (field.dataset.continuationRequired === undefined) {
+                    field.dataset.continuationRequired = field.required ? 'true' : 'false';
+                }
+                field.disabled = isContinuation;
+                if (isContinuation) {
+                    field.required = false;
+                    field.value = '';
+                } else {
+                    field.required = field.dataset.continuationRequired === 'true';
+                }
+            });
+        };
+
+        select.addEventListener('change', toggleFields);
+        toggleFields();
+    });
+};
+
 const normalizeDateInput = (value) => {
     if (!value) {
         return '';
@@ -149,7 +182,23 @@ const refreshTableTarget = async (url, targetSelector) => {
         attachTableHandlers(currentTable);
         attachModalListeners(currentTable);
         bindNumericFormatting(currentTable);
+        attachContinuationToggles(currentTable);
     }
+    const refreshTargets = currentTable?.dataset.refreshTarget
+        ? currentTable.dataset.refreshTarget.split(',').map((target) => target.trim()).filter(Boolean)
+        : [];
+    refreshTargets.forEach((selector) => {
+        const nextTarget = doc.querySelector(selector);
+        const currentTarget = document.querySelector(selector);
+        if (!nextTarget || !currentTarget) {
+            return;
+        }
+        currentTarget.innerHTML = nextTarget.innerHTML;
+        attachTableHandlers(currentTarget);
+        attachModalListeners(currentTarget);
+        bindNumericFormatting(currentTarget);
+        attachContinuationToggles(currentTarget);
+    });
 };
 
 const attachTableHandlers = (root = document) => {
@@ -402,4 +451,5 @@ document.addEventListener('DOMContentLoaded', () => {
     attachModalListeners();
     attachTableHandlers();
     bindNumericFormatting();
+    attachContinuationToggles();
 });
