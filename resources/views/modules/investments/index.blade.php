@@ -169,6 +169,7 @@
                     <option value="activa">Activa</option>
                     <option value="cerrada">Cerrada</option>
                 </select>
+                <p class="text-[11px] text-gray-400">Cerrar una inversión solo indica que no está activa; los retiros se registran en liquidaciones.</p>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
                     <button type="submit" class="px-4 py-2 text-sm bg-green-600 text-white rounded-md">Guardar</button>
@@ -224,6 +225,7 @@
                     <option value="activa">Activa</option>
                     <option value="cerrada">Cerrada</option>
                 </select>
+                <p class="text-[11px] text-gray-400">Cerrar una inversión solo indica que no está activa; los retiros se registran en liquidaciones.</p>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
                     <button type="submit"
