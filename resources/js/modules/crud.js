@@ -181,8 +181,10 @@ const attachLiquidationFormHandlers = (root = document) => {
                 if (gainInput.disabled) {
                     gainInput.value = '';
                 }
-                if (!gainInput.disabled && Number(gainInput.value || 0) > availableGain) {
+                const currentGain = parseCopValue(gainInput.value || '0');
+                if (!gainInput.disabled && currentGain > availableGain) {
                     gainInput.value = availableGain.toFixed(2);
+                    formatNumericInput(gainInput);
                 }
             }
 
@@ -192,8 +194,10 @@ const attachLiquidationFormHandlers = (root = document) => {
                 if (capitalInput.disabled) {
                     capitalInput.value = '';
                 }
-                if (!capitalInput.disabled && Number(capitalInput.value || 0) > availableCapital) {
+                const currentCapital = parseCopValue(capitalInput.value || '0');
+                if (!capitalInput.disabled && currentCapital > availableCapital) {
                     capitalInput.value = availableCapital.toFixed(2);
+                    formatNumericInput(capitalInput);
                 }
             }
         };
@@ -463,10 +467,12 @@ const attachModalListeners = (root = document) => {
 
                 if (gainInput) {
                     gainInput.value = liq.withdrawn_gain_cop ?? liq.gain_cop ?? 0;
+                    formatNumericInput(gainInput);
                 }
 
                 if (capitalInput) {
                     capitalInput.value = Number(liq.withdrawn_capital_cop ?? 0);
+                    formatNumericInput(capitalInput);
                 }
 
                 document.getElementById('liquidation-due').value = normalizeDateInput(liq.due_date);

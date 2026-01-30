@@ -131,7 +131,7 @@
                         <label class="text-xs text-gray-600">Ganancias disponibles</label>
                         <span class="text-xs text-gray-500" data-liquidation-available-gain>0</span>
                     </div>
-                    <x-text-input name="withdraw_gain_cop" type="number" step="0.01" min="0" class="w-full" data-liquidation-gain />
+                    <x-text-input name="withdraw_gain_cop" type="text" class="w-full" data-liquidation-gain data-format="cop" />
                     <p class="text-[11px] text-gray-400 mt-1">Solo se pueden retirar ganancias generadas.</p>
                 </div>
                 <div>
@@ -139,7 +139,7 @@
                         <label class="text-xs text-gray-600">Capital disponible</label>
                         <span class="text-xs text-gray-500" data-liquidation-available-capital>0</span>
                     </div>
-                    <x-text-input name="withdraw_capital_cop" type="number" step="0.01" min="0" class="w-full" data-liquidation-capital />
+                    <x-text-input name="withdraw_capital_cop" type="text" class="w-full" data-liquidation-capital data-format="cop" />
                     <p class="text-[11px] text-gray-400 mt-1">Puedes retirar una parte o todo el capital disponible.</p>
                 </div>
             </div>
@@ -200,14 +200,14 @@
                         <label class="text-xs text-gray-600">Ganancias disponibles</label>
                         <span class="text-xs text-gray-500" data-liquidation-available-gain>0</span>
                     </div>
-                    <x-text-input name="withdraw_gain_cop" id="liquidation-gain" type="number" step="0.01" min="0" class="w-full" data-liquidation-gain />
+                    <x-text-input name="withdraw_gain_cop" id="liquidation-gain" type="text" class="w-full" data-liquidation-gain data-format="cop" />
                 </div>
                 <div>
                     <div class="flex items-center justify-between">
                         <label class="text-xs text-gray-600">Capital disponible</label>
                         <span class="text-xs text-gray-500" data-liquidation-available-capital>0</span>
                     </div>
-                    <x-text-input name="withdraw_capital_cop" id="liquidation-capital" type="number" step="0.01" min="0" class="w-full" data-liquidation-capital />
+                    <x-text-input name="withdraw_capital_cop" id="liquidation-capital" type="text" class="w-full" data-liquidation-capital data-format="cop" />
                     <p class="text-[11px] text-gray-400 mt-1">Puedes retirar una parte o todo el capital disponible.</p>
                 </div>
             </div>
