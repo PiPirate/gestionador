@@ -135,11 +135,9 @@ const attachLiquidationFormHandlers = (root = document) => {
         const investorSelect = form.querySelector('[data-liquidation-investor]');
         const investmentSelect = form.querySelector('[data-liquidation-investment]');
         const gainInput = form.querySelector('[data-liquidation-gain]');
-        const capitalToggle = form.querySelector('[data-liquidation-capital-toggle]');
         const capitalInput = form.querySelector('[data-liquidation-capital]');
         const gainAvailable = form.querySelector('[data-liquidation-available-gain]');
         const capitalAvailable = form.querySelector('[data-liquidation-available-capital]');
-        const capitalValue = form.querySelector('[data-liquidation-capital-value]');
 
         if (!investorSelect || !investmentSelect) {
             return;
@@ -177,10 +175,6 @@ const attachLiquidationFormHandlers = (root = document) => {
             if (capitalAvailable) {
                 capitalAvailable.textContent = formatCopDisplay(availableCapital);
             }
-            if (capitalValue) {
-                capitalValue.textContent = formatCopDisplay(availableCapital);
-            }
-
             if (gainInput) {
                 gainInput.max = availableGain.toFixed(2);
                 gainInput.disabled = availableGain <= 0;
@@ -192,20 +186,20 @@ const attachLiquidationFormHandlers = (root = document) => {
                 }
             }
 
-            if (capitalToggle) {
-                capitalToggle.disabled = availableCapital <= 0;
-                if (capitalToggle.disabled) {
-                    capitalToggle.checked = false;
-                }
-            }
             if (capitalInput) {
-                capitalInput.value = capitalToggle?.checked ? availableCapital.toFixed(2) : '0';
+                capitalInput.max = availableCapital.toFixed(2);
+                capitalInput.disabled = availableCapital <= 0;
+                if (capitalInput.disabled) {
+                    capitalInput.value = '';
+                }
+                if (!capitalInput.disabled && Number(capitalInput.value || 0) > availableCapital) {
+                    capitalInput.value = availableCapital.toFixed(2);
+                }
             }
         };
 
         investorSelect.addEventListener('change', updateInvestmentOptions);
         investmentSelect.addEventListener('change', updateInvestmentDetails);
-        capitalToggle?.addEventListener('change', updateInvestmentDetails);
 
         updateInvestmentOptions();
     });
@@ -451,7 +445,6 @@ const attachModalListeners = (root = document) => {
                 const investorSelect = document.getElementById('liquidation-investor');
                 const investmentSelect = document.getElementById('liquidation-investment');
                 const gainInput = document.getElementById('liquidation-gain');
-                const capitalToggle = document.getElementById('liquidation-capital-toggle');
                 const capitalInput = document.getElementById('liquidation-capital');
 
                 investorSelect.value = liq.investor_id;
@@ -472,10 +465,8 @@ const attachModalListeners = (root = document) => {
                     gainInput.value = liq.withdrawn_gain_cop ?? liq.gain_cop ?? 0;
                 }
 
-                if (capitalToggle && capitalInput) {
-                    const capitalValue = Number(liq.withdrawn_capital_cop ?? 0);
-                    capitalToggle.checked = capitalValue > 0;
-                    capitalInput.value = capitalToggle.checked ? capitalValue.toFixed(2) : '0';
+                if (capitalInput) {
+                    capitalInput.value = Number(liq.withdrawn_capital_cop ?? 0);
                 }
 
                 document.getElementById('liquidation-due').value = normalizeDateInput(liq.due_date);
@@ -484,7 +475,6 @@ const attachModalListeners = (root = document) => {
                 attachLiquidationFormHandlers(form);
                 investorSelect.dispatchEvent(new Event('change'));
                 investmentSelect?.dispatchEvent(new Event('change'));
-                capitalToggle?.dispatchEvent(new Event('change'));
             }
         });
     });

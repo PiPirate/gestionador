@@ -180,12 +180,6 @@ class LiquidationsController extends Controller
             ]);
         }
 
-        if ($capital > 0 && abs($capital - $availableCapital) > 0.01) {
-            throw ValidationException::withMessages([
-                'withdraw_capital_cop' => 'El retiro de capital debe ser por el total disponible.',
-            ]);
-        }
-
         return [round($gain, 2), round($capital, 2)];
     }
 }

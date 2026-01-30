@@ -139,14 +139,8 @@
                         <label class="text-xs text-gray-600">Capital disponible</label>
                         <span class="text-xs text-gray-500" data-liquidation-available-capital>0</span>
                     </div>
-                    <div class="flex items-center gap-2 mt-1">
-                        <input type="checkbox" id="liquidation-capital-toggle-create" class="rounded border-gray-300" data-liquidation-capital-toggle>
-                        <label for="liquidation-capital-toggle-create" class="text-xs text-gray-600">
-                            Retirar inversión completa (<span data-liquidation-capital-value>0</span>)
-                        </label>
-                    </div>
-                    <input type="hidden" name="withdraw_capital_cop" value="0" data-liquidation-capital>
-                    <p class="text-[11px] text-gray-400 mt-1">El cierre solo indica que ya no está activa.</p>
+                    <x-text-input name="withdraw_capital_cop" type="number" step="0.01" min="0" class="w-full" data-liquidation-capital />
+                    <p class="text-[11px] text-gray-400 mt-1">Puedes retirar una parte o todo el capital disponible.</p>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -213,13 +207,8 @@
                         <label class="text-xs text-gray-600">Capital disponible</label>
                         <span class="text-xs text-gray-500" data-liquidation-available-capital>0</span>
                     </div>
-                    <div class="flex items-center gap-2 mt-1">
-                        <input type="checkbox" id="liquidation-capital-toggle" class="rounded border-gray-300" data-liquidation-capital-toggle>
-                        <label for="liquidation-capital-toggle" class="text-xs text-gray-600">
-                            Retirar inversión completa (<span data-liquidation-capital-value>0</span>)
-                        </label>
-                    </div>
-                    <input type="hidden" name="withdraw_capital_cop" id="liquidation-capital" value="0" data-liquidation-capital>
+                    <x-text-input name="withdraw_capital_cop" id="liquidation-capital" type="number" step="0.01" min="0" class="w-full" data-liquidation-capital />
+                    <p class="text-[11px] text-gray-400 mt-1">Puedes retirar una parte o todo el capital disponible.</p>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
