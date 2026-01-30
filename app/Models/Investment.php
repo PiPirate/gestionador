@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 class Investment extends Model
@@ -32,6 +33,39 @@ class Investment extends Model
     public function investor(): BelongsTo
     {
         return $this->belongsTo(Investor::class);
+    }
+
+    public function liquidations(): HasMany
+    {
+        return $this->hasMany(Liquidation::class);
+    }
+
+    public function withdrawnGainCop(): float
+    {
+        if ($this->relationLoaded('liquidations')) {
+            return (float) $this->liquidations->sum('withdrawn_gain_cop');
+        }
+
+        return (float) $this->liquidations()->sum('withdrawn_gain_cop');
+    }
+
+    public function withdrawnCapitalCop(): float
+    {
+        if ($this->relationLoaded('liquidations')) {
+            return (float) $this->liquidations->sum('withdrawn_capital_cop');
+        }
+
+        return (float) $this->liquidations()->sum('withdrawn_capital_cop');
+    }
+
+    public function availableGainCop(?Carbon $asOf = null): float
+    {
+        return max(0, $this->accumulatedGainCop($asOf) - $this->withdrawnGainCop());
+    }
+
+    public function availableCapitalCop(): float
+    {
+        return max(0, $this->amount_cop - $this->withdrawnCapitalCop());
     }
 
     public function dailyGainCop(): float
