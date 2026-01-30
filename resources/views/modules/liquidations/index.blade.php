@@ -4,7 +4,7 @@
             <div>
                 <p class="text-sm text-gray-500">Dashboard / Operaciones / Liquidaciones</p>
                 <h1 class="text-2xl font-bold text-gray-900">Liquidaciones</h1>
-                <p class="text-sm text-gray-600 mt-1">Pago de rendimientos a inversores</p>
+                <p class="text-sm text-gray-600 mt-1">Retiros de ganancias y capital de inversores</p>
             </div>
             <div class="flex items-center gap-3">
                 <form method="GET" action="{{ route('liquidations.index') }}" class="hidden"></form>
@@ -48,11 +48,11 @@
             <div class="grid grid-cols-8 text-xs font-semibold text-gray-500 pb-2">
                 <span>Liquidación</span>
                 <span>Inversor</span>
-                <span>Monto ({{ strtoupper(\App\Support\Currency::current()) }})</span>
-                <span>% Mensual</span>
-                <span>Período</span>
-                <span>Ganancias</span>
-                <span>Total a pagar</span>
+                <span>Inversión</span>
+                <span>Ganancias retiradas</span>
+                <span>Capital retirado</span>
+                <span>Total pagado</span>
+                <span>Estado</span>
                 <span class="text-right">Acciones</span>
             </div>
             <div class="divide-y divide-gray-100">
@@ -63,13 +63,16 @@
                             <p class="text-xs text-gray-500">Vence: {{ optional($row->due_date)->format('d/m/Y') ?? '—' }}</p>
                         </div>
                         <span class="text-gray-700">{{ $row->investor->name ?? '—' }}</span>
-                        <span class="text-gray-700">{{ \App\Support\Currency::format($row->amount_usd, 'usd') }}</span>
-                        <span class="text-green-700 font-semibold">{{ number_format($row->monthly_rate, 1) }}%</span>
-                        <span class="text-gray-700">{{ optional($row->period_start)->format('d/m') }} - {{ optional($row->period_end)->format('d/m/Y') }}</span>
-                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($row->gain_cop, 'cop') }}</span>
+                        <span class="text-gray-700">
+                            {{ $row->investment?->code ?? '—' }}
+                        </span>
+                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($row->withdrawn_gain_cop ?? $row->gain_cop, 'cop') }}</span>
+                        <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($row->withdrawn_capital_cop ?? 0, 'cop') }}</span>
                         <span class="text-gray-900 font-semibold">{{ \App\Support\Currency::format($row->total_cop, 'cop') }}</span>
-                        <div class="text-right space-x-2">
+                        <div>
                             <span class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $row->status === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700' }}">{{ ucfirst($row->status) }}</span>
+                        </div>
+                        <div class="text-right space-x-2">
                             <button data-modal-target="liquidation-edit" data-liquidation='@json($row)' class="text-blue-600 text-xs">Editar</button>
                             @if($row->status !== 'procesada')
                                 <form method="POST" action="{{ route('liquidations.process', $row) }}" class="inline">
@@ -94,12 +97,12 @@
 <div id="modal-liquidation-create" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
         <h3 class="text-lg font-semibold mb-4">Nueva Liquidación</h3>
-        <form method="POST" action="{{ route('liquidations.store') }}" class="space-y-3">
+        <form method="POST" action="{{ route('liquidations.store') }}" class="space-y-3" data-liquidation-form data-liquidation-filter="available">
             @csrf
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="text-xs text-gray-600">Inversor</label>
-                    <select name="investor_id" class="border rounded-md px-3 py-2 w-full" required>
+                    <select name="investor_id" class="border rounded-md px-3 py-2 w-full" data-liquidation-investor required>
                         <option value="">Seleccione</option>
                         @foreach ($investors as $investor)
                             <option value="{{ $investor->id }}">{{ $investor->name }} ({{ $investor->monthly_rate }}%)</option>
@@ -107,22 +110,43 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-gray-600">% mensual</label>
-                    <x-text-input name="monthly_rate" type="number" step="0.01" class="w-full" required />
+                    <label class="text-xs text-gray-600">Inversión</label>
+                    <select name="investment_id" class="border rounded-md px-3 py-2 w-full" data-liquidation-investment required>
+                        <option value="">Seleccione</option>
+                        @foreach ($investments as $investment)
+                            <option
+                                value="{{ $investment->id }}"
+                                data-investor-id="{{ $investment->investor_id }}"
+                                data-available-gain="{{ $investment->availableGainCop() }}"
+                                data-available-capital="{{ $investment->availableCapitalCop() }}">
+                                {{ $investment->code }} · {{ $investment->investor?->name }} · {{ \App\Support\Currency::format($investment->amount_cop, 'cop') }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="text-xs text-gray-600">Monto USD</label>
-                    <x-text-input name="amount_usd" type="number" step="0.01" class="w-full" required />
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs text-gray-600">Ganancias disponibles</label>
+                        <span class="text-xs text-gray-500" data-liquidation-available-gain>0</span>
+                    </div>
+                    <x-text-input name="withdraw_gain_cop" type="number" step="0.01" min="0" class="w-full" data-liquidation-gain />
+                    <p class="text-[11px] text-gray-400 mt-1">Solo se pueden retirar ganancias generadas.</p>
                 </div>
                 <div>
-                    <label class="text-xs text-gray-600">Inicio</label>
-                    <x-text-input name="period_start" type="date" class="w-full" required />
-                </div>
-                <div>
-                    <label class="text-xs text-gray-600">Fin</label>
-                    <x-text-input name="period_end" type="date" class="w-full" required />
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs text-gray-600">Capital disponible</label>
+                        <span class="text-xs text-gray-500" data-liquidation-available-capital>0</span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <input type="checkbox" id="liquidation-capital-toggle-create" class="rounded border-gray-300" data-liquidation-capital-toggle>
+                        <label for="liquidation-capital-toggle-create" class="text-xs text-gray-600">
+                            Retirar inversión completa (<span data-liquidation-capital-value>0</span>)
+                        </label>
+                    </div>
+                    <input type="hidden" name="withdraw_capital_cop" value="0" data-liquidation-capital>
+                    <p class="text-[11px] text-gray-400 mt-1">El cierre solo indica que ya no está activa.</p>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -148,35 +172,54 @@
 <div id="modal-liquidation-edit" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
         <h3 class="text-lg font-semibold mb-4">Editar Liquidación</h3>
-        <form method="POST" id="liquidation-edit-form" class="space-y-3">
+        <form method="POST" id="liquidation-edit-form" class="space-y-3" data-liquidation-form>
             @csrf
             @method('PUT')
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="text-xs text-gray-600">Inversor</label>
-                    <select name="investor_id" id="liquidation-investor" class="border rounded-md px-3 py-2 w-full" required>
+                    <select name="investor_id" id="liquidation-investor" class="border rounded-md px-3 py-2 w-full" data-liquidation-investor required>
                         @foreach ($investors as $investor)
                             <option value="{{ $investor->id }}">{{ $investor->name }} ({{ $investor->monthly_rate }}%)</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-gray-600">% mensual</label>
-                    <x-text-input name="monthly_rate" id="liquidation-rate" type="number" step="0.01" class="w-full" required />
+                    <label class="text-xs text-gray-600">Inversión</label>
+                    <select name="investment_id" id="liquidation-investment" class="border rounded-md px-3 py-2 w-full" data-liquidation-investment required>
+                        <option value="">Seleccione</option>
+                        @foreach ($investments as $investment)
+                            <option
+                                value="{{ $investment->id }}"
+                                data-investor-id="{{ $investment->investor_id }}"
+                                data-available-gain="{{ $investment->availableGainCop() }}"
+                                data-available-capital="{{ $investment->availableCapitalCop() }}">
+                                {{ $investment->code }} · {{ $investment->investor?->name }} · {{ \App\Support\Currency::format($investment->amount_cop, 'cop') }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="text-xs text-gray-600">Monto USD</label>
-                    <x-text-input name="amount_usd" id="liquidation-amount" type="number" step="0.01" class="w-full" required />
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs text-gray-600">Ganancias disponibles</label>
+                        <span class="text-xs text-gray-500" data-liquidation-available-gain>0</span>
+                    </div>
+                    <x-text-input name="withdraw_gain_cop" id="liquidation-gain" type="number" step="0.01" min="0" class="w-full" data-liquidation-gain />
                 </div>
                 <div>
-                    <label class="text-xs text-gray-600">Inicio</label>
-                    <x-text-input name="period_start" id="liquidation-start" type="date" class="w-full" required />
-                </div>
-                <div>
-                    <label class="text-xs text-gray-600">Fin</label>
-                    <x-text-input name="period_end" id="liquidation-end" type="date" class="w-full" required />
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs text-gray-600">Capital disponible</label>
+                        <span class="text-xs text-gray-500" data-liquidation-available-capital>0</span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <input type="checkbox" id="liquidation-capital-toggle" class="rounded border-gray-300" data-liquidation-capital-toggle>
+                        <label for="liquidation-capital-toggle" class="text-xs text-gray-600">
+                            Retirar inversión completa (<span data-liquidation-capital-value>0</span>)
+                        </label>
+                    </div>
+                    <input type="hidden" name="withdraw_capital_cop" id="liquidation-capital" value="0" data-liquidation-capital>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
