@@ -12,12 +12,15 @@ class Liquidation extends Model
 
     protected $fillable = [
         'investor_id',
+        'investment_id',
         'code',
         'amount_usd',
         'monthly_rate',
         'period_start',
         'period_end',
         'gain_cop',
+        'withdrawn_gain_cop',
+        'withdrawn_capital_cop',
         'total_cop',
         'status',
         'due_date',
@@ -32,5 +35,10 @@ class Liquidation extends Model
     public function investor(): BelongsTo
     {
         return $this->belongsTo(Investor::class);
+    }
+
+    public function investment(): BelongsTo
+    {
+        return $this->belongsTo(Investment::class);
     }
 }
