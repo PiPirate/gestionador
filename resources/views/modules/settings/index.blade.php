@@ -164,10 +164,14 @@
                                     <div class="flex items-center gap-2">
                                         @if ($rule->is_active)
                                             <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Activa</span>
-                                            <form method="POST" action="{{ route('settings.profit-rules.deactivate', $rule) }}">
-                                                @csrf
-                                                <button type="submit" class="text-xs text-gray-600">Desactivar</button>
-                                            </form>
+                                            @if ($profitRules->where('is_active', true)->count() > 1)
+                                                <form method="POST" action="{{ route('settings.profit-rules.deactivate', $rule) }}">
+                                                    @csrf
+                                                    <button type="submit" class="text-xs text-gray-600">Desactivar</button>
+                                                </form>
+                                            @else
+                                                <span class="text-xs text-gray-400">Desactivar</span>
+                                            @endif
                                         @else
                                             <form method="POST" action="{{ route('settings.profit-rules.activate', $rule) }}">
                                                 @csrf
@@ -179,11 +183,15 @@
                                             <input type="hidden" name="tiers_json" value='@json($rule->tiers_json)'>
                                             <button type="submit" class="text-xs text-gray-600">Duplicar</button>
                                         </form>
-                                        <form method="POST" action="{{ route('settings.profit-rules.destroy', $rule) }}" onsubmit="return confirm('¿Eliminar regla?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-xs text-red-600">Eliminar</button>
-                                        </form>
+                                        @if ($profitRules->count() > 1)
+                                            <form method="POST" action="{{ route('settings.profit-rules.destroy', $rule) }}" onsubmit="return confirm('¿Eliminar regla?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-xs text-red-600">Eliminar</button>
+                                            </form>
+                                        @else
+                                            <span class="text-xs text-gray-400">Eliminar</span>
+                                        @endif
                                     </div>
                                 </div>
                                 <form method="POST" action="{{ route('settings.profit-rules.update', $rule) }}" class="space-y-2">

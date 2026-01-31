@@ -108,7 +108,8 @@ class InvestorsController extends Controller
         ];
 
         $activeProfitRule = ProfitRule::where('is_active', true)->first();
+        $profitRules = ProfitRule::orderByDesc('created_at')->get();
 
-        return view('modules.investors.show', compact('investor', 'investments', 'summary', 'continuableInvestments', 'activeProfitRule'));
+        return view('modules.investors.show', compact('investor', 'investments', 'summary', 'continuableInvestments', 'activeProfitRule', 'profitRules'));
     }
 }

@@ -211,6 +211,33 @@ const attachProfitRuleHandlers = (root = document) => {
     });
 };
 
+const attachSelectSearch = (root = document) => {
+    root.querySelectorAll('[data-select-search]').forEach((input) => {
+        if (input.dataset.boundSearch) {
+            return;
+        }
+        input.dataset.boundSearch = 'true';
+        const targetSelector = input.dataset.selectTarget;
+        if (!targetSelector) {
+            return;
+        }
+        const select = root.querySelector(targetSelector) || document.querySelector(targetSelector);
+        if (!select) {
+            return;
+        }
+        input.addEventListener('input', () => {
+            const query = input.value.toLowerCase();
+            Array.from(select.options).forEach((option) => {
+                if (!option.value) {
+                    option.hidden = false;
+                    return;
+                }
+                option.hidden = !option.textContent.toLowerCase().includes(query);
+            });
+        });
+    });
+};
+
 const attachLiquidationFormHandlers = (root = document) => {
     root.querySelectorAll('[data-liquidation-form]').forEach((form) => {
         if (form.dataset.liquidationBound) {
@@ -359,6 +386,7 @@ const refreshTableTarget = async (url, targetSelector) => {
         attachContinuationToggles(currentTable);
         attachLiquidationFormHandlers(currentTable);
         attachProfitRuleHandlers(currentTable);
+        attachSelectSearch(currentTable);
     }
     const refreshTargets = currentTable?.dataset.refreshTarget
         ? currentTable.dataset.refreshTarget.split(',').map((target) => target.trim()).filter(Boolean)
@@ -376,6 +404,7 @@ const refreshTableTarget = async (url, targetSelector) => {
         attachContinuationToggles(currentTarget);
         attachLiquidationFormHandlers(currentTarget);
         attachProfitRuleHandlers(currentTarget);
+        attachSelectSearch(currentTarget);
     });
 };
 
@@ -477,6 +506,10 @@ const attachModalListeners = (root = document) => {
                         ? formatCopDisplay(investment.daily_interest_snapshot)
                         : '—';
                 }
+                const profitRuleSelect = document.getElementById('investment-profit-rule-edit');
+                if (profitRuleSelect) {
+                    profitRuleSelect.value = investment.profit_rule_id || '';
+                }
                 document.getElementById('investment-start').value = normalizeDateInput(investment.start_date);
                 document.getElementById('investment-end').value = normalizeDateInput(investment.end_date);
                 document.getElementById('investment-status').value = investment.status;
@@ -520,6 +553,10 @@ const attachModalListeners = (root = document) => {
                     dailyProfitLabel.textContent = investment.daily_interest_snapshot
                         ? formatCopDisplay(investment.daily_interest_snapshot)
                         : '—';
+                }
+                const profitRuleSelect = document.getElementById('investor-profit-rule-edit');
+                if (profitRuleSelect) {
+                    profitRuleSelect.value = investment.profit_rule_id || '';
                 }
                 document.getElementById('investment-edit-start').value = normalizeDateInput(investment.start_date);
                 document.getElementById('investment-edit-end').value = normalizeDateInput(investment.end_date);
@@ -662,17 +699,22 @@ const attachModalListeners = (root = document) => {
             }
             const tableRoot = document.querySelector(targetSelector);
             setTableLoading(tableRoot, true);
-            normalizeFormNumericFields(form);
-            const formData = new FormData(form);
-            const response = await fetch(form.action, {
-                method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body: formData,
-            });
-            if (response.ok) {
-                await refreshTableTarget(window.location.href, targetSelector);
+            try {
+                normalizeFormNumericFields(form);
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData,
+                });
+                if (response.ok) {
+                    await refreshTableTarget(window.location.href, targetSelector);
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setTableLoading(tableRoot, false);
             }
-            setTableLoading(tableRoot, false);
         });
     });
 
@@ -696,4 +738,5 @@ document.addEventListener('DOMContentLoaded', () => {
     attachContinuationToggles();
     attachLiquidationFormHandlers();
     attachProfitRuleHandlers();
+    attachSelectSearch();
 });

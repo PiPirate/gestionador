@@ -78,6 +78,12 @@ class ProfitRulesController extends Controller
 
     public function deactivate(ProfitRule $profitRule)
     {
+        if (ProfitRule::where('is_active', true)->count() <= 1 && $profitRule->is_active) {
+            return redirect()->route('settings.index')->withErrors([
+                'profit_rule' => 'Debe existir al menos una regla activa.',
+            ]);
+        }
+
         $profitRule->update(['is_active' => false]);
 
         AuditLogger::log('Desactivar regla de rentabilidad', $profitRule, ['id' => $profitRule->id]);
@@ -101,6 +107,30 @@ class ProfitRulesController extends Controller
             'tiers_json' => $tiers,
         ]);
 
+        $profitRule->investments()
+            ->select(['id', 'amount_cop', 'start_date', 'end_date'])
+            ->chunkById(200, function ($investments) use ($tiers) {
+                foreach ($investments as $investment) {
+                    $monthlyProfit = \App\Services\ProfitRuleCalculator::calcMonthlyProfit(
+                        (float) $investment->amount_cop,
+                        $tiers
+                    );
+                    $monthReference = $investment->end_date ?? $investment->start_date;
+                    $monthDays = $monthReference ? $monthReference->daysInMonth : 0;
+                    $dailyInterest = $monthDays > 0 ? $monthlyProfit / $monthDays : 0;
+                    $effectiveRate = $investment->amount_cop > 0
+                        ? ($monthlyProfit / $investment->amount_cop) * 100
+                        : 0;
+
+                    $investment->update([
+                        'tiers_snapshot' => $tiers,
+                        'monthly_profit_snapshot' => $monthlyProfit,
+                        'daily_interest_snapshot' => $dailyInterest,
+                        'monthly_rate' => $effectiveRate,
+                    ]);
+                }
+            });
+
         AuditLogger::log('Actualizar regla de rentabilidad', $profitRule, ['tiers' => $tiers]);
 
         return redirect()->route('settings.index')->with('status', 'Regla de rentabilidad actualizada');
@@ -108,6 +138,21 @@ class ProfitRulesController extends Controller
 
     public function destroy(ProfitRule $profitRule)
     {
+        if (ProfitRule::count() <= 1) {
+            return redirect()->route('settings.index')->withErrors([
+                'profit_rule' => 'No puedes eliminar la única regla existente.',
+            ]);
+        }
+
+        if ($profitRule->is_active) {
+            $nextRule = ProfitRule::where('id', '!=', $profitRule->id)
+                ->orderByDesc('created_at')
+                ->first();
+            if ($nextRule) {
+                $nextRule->update(['is_active' => true]);
+            }
+        }
+
         $profitRule->delete();
 
         AuditLogger::log('Eliminar regla de rentabilidad', $profitRule, ['id' => $profitRule->id]);

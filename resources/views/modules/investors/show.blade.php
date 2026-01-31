@@ -123,7 +123,9 @@
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">Código</label>
-                        <select name="continuation_id" class="border rounded-md px-3 py-2 w-full" data-continuation-select>
+                        <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar inversión"
+                            data-select-search data-select-target="#investor-continuation-create" />
+                        <select name="continuation_id" id="investor-continuation-create" class="border rounded-md px-3 py-2 w-full" data-continuation-select>
                             <option value="">Nueva inversión (código automático)</option>
                             @foreach ($continuableInvestments as $continuable)
                                 <option value="{{ $continuable->id }}">
@@ -143,6 +145,19 @@
                         <p>Ganancia mensual: <span data-profit-monthly>—</span></p>
                         <p>Interés diario: <span data-profit-daily>—</span></p>
                     </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500">Regla de rentabilidad</label>
+                    <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar regla"
+                        data-select-search data-select-target="#investor-profit-rule-create" />
+                    <select name="profit_rule_id" id="investor-profit-rule-create" class="border rounded-md px-3 py-2 w-full">
+                        <option value="">Regla activa</option>
+                        @foreach ($profitRules as $rule)
+                            <option value="{{ $rule->id }}" {{ $rule->is_active ? 'selected' : '' }}>
+                                Regla #{{ $rule->id }} · {{ $rule->created_at?->format('d/m/Y') }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 @if (!$activeProfitRule)
                     <p class="text-xs text-red-600">No hay una regla de rentabilidad activa. Crea o activa una desde Configuración.</p>
@@ -200,6 +215,19 @@
                         <p>Ganancia mensual: <span id="investment-edit-monthly-profit">—</span></p>
                         <p>Interés diario: <span id="investment-edit-daily-profit">—</span></p>
                     </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500">Regla de rentabilidad</label>
+                    <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar regla"
+                        data-select-search data-select-target="#investor-profit-rule-edit" />
+                    <select name="profit_rule_id" id="investor-profit-rule-edit" class="border rounded-md px-3 py-2 w-full">
+                        <option value="">Regla activa</option>
+                        @foreach ($profitRules as $rule)
+                            <option value="{{ $rule->id }}">
+                                Regla #{{ $rule->id }} · {{ $rule->created_at?->format('d/m/Y') }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fechas de inversión</p>

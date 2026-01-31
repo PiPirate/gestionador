@@ -119,15 +119,22 @@
             <form method="POST" action="{{ route('investments.store') }}" class="space-y-3" data-table-update data-table-target="#investments-table" data-profit-rule data-profit-tiers='@json($activeProfitRule?->tiers_json ?? [])'>
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <select name="investor_id" class="border rounded-md px-3 py-2 w-full" required>
-                        <option value="">Selecciona inversor</option>
-                        @foreach ($investors as $investor)
-                            <option value="{{ $investor->id }}">{{ $investor->name }}</option>
-                        @endforeach
-                    </select>
+                    <div>
+                        <label class="text-xs text-gray-500">Inversor</label>
+                        <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar inversor"
+                            data-select-search data-select-target="#investment-investor-create" />
+                        <select name="investor_id" id="investment-investor-create" class="border rounded-md px-3 py-2 w-full" required>
+                            <option value="">Selecciona inversor</option>
+                            @foreach ($investors as $investor)
+                                <option value="{{ $investor->id }}">{{ $investor->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div>
                         <label class="text-xs text-gray-500">Código</label>
-                        <select name="continuation_id" class="border rounded-md px-3 py-2 w-full" data-continuation-select>
+                        <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar inversión"
+                            data-select-search data-select-target="#investment-continuation-create" />
+                        <select name="continuation_id" id="investment-continuation-create" class="border rounded-md px-3 py-2 w-full" data-continuation-select>
                             <option value="">Nueva inversión (código automático)</option>
                             @foreach ($continuableInvestments as $continuable)
                                 <option value="{{ $continuable->id }}">
@@ -149,6 +156,19 @@
                         <p>Ganancia mensual: <span data-profit-monthly>—</span></p>
                         <p>Interés diario: <span data-profit-daily>—</span></p>
                     </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500">Regla de rentabilidad</label>
+                    <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar regla"
+                        data-select-search data-select-target="#investment-profit-rule-create" />
+                    <select name="profit_rule_id" id="investment-profit-rule-create" class="border rounded-md px-3 py-2 w-full">
+                        <option value="">Regla activa</option>
+                        @foreach ($profitRules as $rule)
+                            <option value="{{ $rule->id }}" {{ $rule->is_active ? 'selected' : '' }}>
+                                Regla #{{ $rule->id }} · {{ $rule->created_at?->format('d/m/Y') }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 @if (!$activeProfitRule)
                     <p class="text-xs text-red-600">No hay una regla de rentabilidad activa. Crea o activa una desde Configuración.</p>
@@ -187,12 +207,16 @@
                 @csrf
                 @method('PUT')
                 <div class="grid grid-cols-2 gap-3">
-                    <select name="investor_id" id="investment-investor" class="border rounded-md px-3 py-2 w-full"
-                        required>
-                        @foreach ($investors as $investor)
-                            <option value="{{ $investor->id }}">{{ $investor->name }}</option>
-                        @endforeach
-                    </select>
+                    <div>
+                        <label class="text-xs text-gray-500">Inversor</label>
+                        <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar inversor"
+                            data-select-search data-select-target="#investment-investor" />
+                        <select name="investor_id" id="investment-investor" class="border rounded-md px-3 py-2 w-full" required>
+                            @foreach ($investors as $investor)
+                                <option value="{{ $investor->id }}">{{ $investor->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div>
                         <label class="text-xs text-gray-500">Código asignado</label>
                         <x-text-input name="code" id="investment-code" placeholder="Código" class="w-full" disabled />
@@ -207,6 +231,19 @@
                         <p>Ganancia mensual: <span id="investment-monthly-profit">—</span></p>
                         <p>Interés diario: <span id="investment-daily-profit">—</span></p>
                     </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500">Regla de rentabilidad</label>
+                    <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar regla"
+                        data-select-search data-select-target="#investment-profit-rule-edit" />
+                    <select name="profit_rule_id" id="investment-profit-rule-edit" class="border rounded-md px-3 py-2 w-full">
+                        <option value="">Regla activa</option>
+                        @foreach ($profitRules as $rule)
+                            <option value="{{ $rule->id }}">
+                                Regla #{{ $rule->id }} · {{ $rule->created_at?->format('d/m/Y') }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fechas de inversión</p>

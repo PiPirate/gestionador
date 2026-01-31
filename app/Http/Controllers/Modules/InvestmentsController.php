@@ -48,13 +48,14 @@ class InvestmentsController extends Controller
         ];
 
         $activeProfitRule = ProfitRule::where('is_active', true)->first();
+        $profitRules = ProfitRule::orderByDesc('created_at')->get();
         $investors = Investor::orderBy('name')->get();
         $continuableInvestments = Investment::with('investor')
             ->where('status', '!=', 'cerrada')
             ->orderByDesc('start_date')
             ->get();
 
-        return view('modules.investments.index', compact('investments', 'summary', 'investors', 'continuableInvestments', 'activeProfitRule'));
+        return view('modules.investments.index', compact('investments', 'summary', 'investors', 'continuableInvestments', 'activeProfitRule', 'profitRules'));
     }
 
     public function store(Request $request)
@@ -62,6 +63,7 @@ class InvestmentsController extends Controller
         $rules = [
             'investor_id' => 'required|exists:investors,id',
             'continuation_id' => 'nullable|exists:investments,id',
+            'profit_rule_id' => 'nullable|exists:profit_rules,id',
             'amount_cop' => 'required_without:continuation_id|numeric|min:0',
             'start_date' => 'required_without:continuation_id|date',
             'end_date' => 'nullable|date',
@@ -104,7 +106,9 @@ class InvestmentsController extends Controller
 
             $code = $this->generateCode($investor);
 
-            $profitRule = ProfitRule::where('is_active', true)->first();
+            $profitRule = !empty($data['profit_rule_id'])
+                ? ProfitRule::find($data['profit_rule_id'])
+                : ProfitRule::where('is_active', true)->first();
             if (!$profitRule) {
                 return back()->withErrors(['profit_rule' => 'No hay una regla de rentabilidad activa.']);
             }
@@ -139,7 +143,9 @@ class InvestmentsController extends Controller
 
         $investor = Investor::findOrFail($data['investor_id']);
         $code = $this->generateCode($investor);
-        $profitRule = ProfitRule::where('is_active', true)->first();
+        $profitRule = !empty($data['profit_rule_id'])
+            ? ProfitRule::find($data['profit_rule_id'])
+            : ProfitRule::where('is_active', true)->first();
         if (!$profitRule) {
             return back()->withErrors(['profit_rule' => 'No hay una regla de rentabilidad activa.']);
         }
@@ -173,6 +179,7 @@ class InvestmentsController extends Controller
     {
         $data = $request->validate([
             'investor_id' => 'required|exists:investors,id',
+            'profit_rule_id' => 'nullable|exists:profit_rules,id',
             'amount_cop' => 'required|numeric|min:0',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
@@ -181,14 +188,21 @@ class InvestmentsController extends Controller
 
         $investment->fill($data);
 
-        if ($investment->tiers_snapshot && $investment->amount_cop > 0) {
-            $monthlyProfit = ProfitRuleCalculator::calcMonthlyProfit($investment->amount_cop, $investment->tiers_snapshot);
+        $profitRule = $investment->profit_rule_id
+            ? ProfitRule::find($investment->profit_rule_id)
+            : null;
+
+        $tiers = $profitRule?->tiers_json ?? $investment->tiers_snapshot;
+
+        if ($tiers && $investment->amount_cop > 0) {
+            $monthlyProfit = ProfitRuleCalculator::calcMonthlyProfit($investment->amount_cop, $tiers);
             $monthReference = $investment->end_date ?: $investment->start_date;
             $monthDays = $monthReference ? $monthReference->daysInMonth : 0;
             $dailyInterest = $monthDays > 0 ? $monthlyProfit / $monthDays : 0;
             $effectiveRate = $investment->amount_cop > 0 ? ($monthlyProfit / $investment->amount_cop) * 100 : 0;
 
             $investment->monthly_rate = $effectiveRate;
+            $investment->tiers_snapshot = $tiers;
             $investment->monthly_profit_snapshot = $monthlyProfit;
             $investment->daily_interest_snapshot = $dailyInterest;
         }
