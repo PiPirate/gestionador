@@ -121,6 +121,94 @@ const attachContinuationToggles = (root = document) => {
     });
 };
 
+const formatCopDisplay = (value) => {
+    return new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+};
+
+const attachLiquidationFormHandlers = (root = document) => {
+    root.querySelectorAll('[data-liquidation-form]').forEach((form) => {
+        if (form.dataset.liquidationBound) {
+            return;
+        }
+        form.dataset.liquidationBound = 'true';
+
+        const investorSelect = form.querySelector('[data-liquidation-investor]');
+        const investmentSelect = form.querySelector('[data-liquidation-investment]');
+        const gainInput = form.querySelector('[data-liquidation-gain]');
+        const capitalInput = form.querySelector('[data-liquidation-capital]');
+        const gainAvailable = form.querySelector('[data-liquidation-available-gain]');
+        const capitalAvailable = form.querySelector('[data-liquidation-available-capital]');
+
+        if (!investorSelect || !investmentSelect) {
+            return;
+        }
+
+        const updateInvestmentOptions = () => {
+            const investorId = investorSelect.value;
+            const options = Array.from(investmentSelect.options);
+            options.forEach((option) => {
+                if (!option.value) {
+                    option.hidden = false;
+                    return;
+                }
+                const matchesInvestor = !investorId || option.dataset.investorId === investorId;
+                const availableGain = option.dataset.availableGain ? Number(option.dataset.availableGain) : 0;
+                const availableCapital = option.dataset.availableCapital ? Number(option.dataset.availableCapital) : 0;
+                const requiresAvailable = form.dataset.liquidationFilter === 'available';
+                const hasAvailable = availableGain > 0 || availableCapital > 0;
+                option.hidden = !matchesInvestor || (requiresAvailable && !hasAvailable);
+            });
+            if (investmentSelect.selectedOptions.length && investmentSelect.selectedOptions[0].hidden) {
+                investmentSelect.value = '';
+            }
+            updateInvestmentDetails();
+        };
+
+        const updateInvestmentDetails = () => {
+            const option = investmentSelect.selectedOptions[0];
+            const availableGain = option?.dataset.availableGain ? Number(option.dataset.availableGain) : 0;
+            const availableCapital = option?.dataset.availableCapital ? Number(option.dataset.availableCapital) : 0;
+
+            if (gainAvailable) {
+                gainAvailable.textContent = formatCopDisplay(availableGain);
+            }
+            if (capitalAvailable) {
+                capitalAvailable.textContent = formatCopDisplay(availableCapital);
+            }
+            if (gainInput) {
+                gainInput.max = availableGain.toFixed(2);
+                gainInput.disabled = availableGain <= 0;
+                if (gainInput.disabled) {
+                    gainInput.value = '';
+                }
+                const currentGain = parseCopValue(gainInput.value || '0');
+                if (!gainInput.disabled && currentGain > availableGain) {
+                    gainInput.value = availableGain.toFixed(2);
+                    formatNumericInput(gainInput);
+                }
+            }
+
+            if (capitalInput) {
+                capitalInput.max = availableCapital.toFixed(2);
+                capitalInput.disabled = availableCapital <= 0;
+                if (capitalInput.disabled) {
+                    capitalInput.value = '';
+                }
+                const currentCapital = parseCopValue(capitalInput.value || '0');
+                if (!capitalInput.disabled && currentCapital > availableCapital) {
+                    capitalInput.value = availableCapital.toFixed(2);
+                    formatNumericInput(capitalInput);
+                }
+            }
+        };
+
+        investorSelect.addEventListener('change', updateInvestmentOptions);
+        investmentSelect.addEventListener('change', updateInvestmentDetails);
+
+        updateInvestmentOptions();
+    });
+};
+
 const normalizeDateInput = (value) => {
     if (!value) {
         return '';
@@ -183,6 +271,7 @@ const refreshTableTarget = async (url, targetSelector) => {
         attachModalListeners(currentTable);
         bindNumericFormatting(currentTable);
         attachContinuationToggles(currentTable);
+        attachLiquidationFormHandlers(currentTable);
     }
     const refreshTargets = currentTable?.dataset.refreshTarget
         ? currentTable.dataset.refreshTarget.split(',').map((target) => target.trim()).filter(Boolean)
@@ -198,6 +287,7 @@ const refreshTableTarget = async (url, targetSelector) => {
         attachModalListeners(currentTarget);
         bindNumericFormatting(currentTarget);
         attachContinuationToggles(currentTarget);
+        attachLiquidationFormHandlers(currentTarget);
     });
 };
 
@@ -356,13 +446,41 @@ const attachModalListeners = (root = document) => {
                 const liq = JSON.parse(btn.dataset.liquidation);
                 const form = document.getElementById('liquidation-edit-form');
                 form.action = `/liquidations/${liq.id}`;
-                document.getElementById('liquidation-investor').value = liq.investor_id;
-                document.getElementById('liquidation-rate').value = liq.monthly_rate;
-                document.getElementById('liquidation-amount').value = liq.amount_usd;
-                document.getElementById('liquidation-start').value = liq.period_start;
-                document.getElementById('liquidation-end').value = liq.period_end;
-                document.getElementById('liquidation-due').value = liq.due_date || '';
+                const investorSelect = document.getElementById('liquidation-investor');
+                const investmentSelect = document.getElementById('liquidation-investment');
+                const gainInput = document.getElementById('liquidation-gain');
+                const capitalInput = document.getElementById('liquidation-capital');
+
+                investorSelect.value = liq.investor_id;
+                if (investmentSelect) {
+                    investmentSelect.value = liq.investment_id || '';
+                    const selectedOption = investmentSelect.selectedOptions[0];
+                    if (selectedOption) {
+                        const extraGain = Number(liq.withdrawn_gain_cop ?? liq.gain_cop ?? 0);
+                        const extraCapital = Number(liq.withdrawn_capital_cop ?? 0);
+                        const currentGain = selectedOption.dataset.availableGain ? Number(selectedOption.dataset.availableGain) : 0;
+                        const currentCapital = selectedOption.dataset.availableCapital ? Number(selectedOption.dataset.availableCapital) : 0;
+                        selectedOption.dataset.availableGain = (currentGain + extraGain).toString();
+                        selectedOption.dataset.availableCapital = (currentCapital + extraCapital).toString();
+                    }
+                }
+
+                if (gainInput) {
+                    gainInput.value = liq.withdrawn_gain_cop ?? liq.gain_cop ?? 0;
+                    formatNumericInput(gainInput);
+                }
+
+                if (capitalInput) {
+                    capitalInput.value = Number(liq.withdrawn_capital_cop ?? 0);
+                    formatNumericInput(capitalInput);
+                }
+
+                document.getElementById('liquidation-due').value = normalizeDateInput(liq.due_date);
                 document.getElementById('liquidation-status').value = liq.status;
+
+                attachLiquidationFormHandlers(form);
+                investorSelect.dispatchEvent(new Event('change'));
+                investmentSelect?.dispatchEvent(new Event('change'));
             }
         });
     });
@@ -452,4 +570,5 @@ document.addEventListener('DOMContentLoaded', () => {
     attachTableHandlers();
     bindNumericFormatting();
     attachContinuationToggles();
+    attachLiquidationFormHandlers();
 });

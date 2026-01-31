@@ -59,16 +59,29 @@ class Investor extends Model
 
     public function totalWithdrawnCop(): float
     {
-        return $this->investments
-            ->where('status', 'cerrada')
-            ->sum('amount_cop');
+        if ($this->relationLoaded('liquidations')) {
+            return (float) $this->liquidations
+                ->where('status', 'procesada')
+                ->sum('withdrawn_capital_cop');
+        }
+
+        return (float) $this->liquidations()
+            ->where('status', 'procesada')
+            ->sum('withdrawn_capital_cop');
     }
 
     public function totalGainsCop(): float
     {
-        return $this->investments
+        if ($this->relationLoaded('investments')) {
+            return (float) $this->investments
+                ->where('status', 'cerrada')
+                ->sum(fn (Investment $investment) => $investment->availableGainCop());
+        }
+
+        return (float) $this->investments()
             ->where('status', 'cerrada')
-            ->sum(fn (Investment $investment) => $investment->totalProjectedGainCop());
+            ->get()
+            ->sum(fn (Investment $investment) => $investment->availableGainCop());
     }
 
     public function totalDaysInvested(): int

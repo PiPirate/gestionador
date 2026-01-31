@@ -97,14 +97,12 @@
                                 class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $investment->status === 'cerrada' ? 'bg-gray-100 text-gray-700' : ($investment->status === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700') }}">{{ ucfirst($investment->status) }}</span>
                             <button data-modal-target="investment-edit" data-investment='@json($investment)'
                                 class="text-blue-600 text-xs">Editar</button>
-                            @if ($investment->status !== 'cerrada')
-                                <form method="POST" action="{{ route('investments.destroy', $investment) }}" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 text-xs"
-                                        onclick="return confirm('¿Eliminar inversión?')">Eliminar</button>
-                                </form>
-                            @endif
+                            <form method="POST" action="{{ route('investments.destroy', $investment) }}" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 text-xs"
+                                    onclick="return confirm('¿Eliminar inversión?')">Eliminar</button>
+                            </form>
                         </span>
                     </div>
                 @empty
@@ -137,7 +135,7 @@
                                 </option>
                             @endforeach
                         </select>
-                        <p class="text-[11px] text-gray-400 mt-1">Al continuar, se conserva el mismo código.</p>
+                        <p class="text-[11px] text-gray-400 mt-1">Al continuar, se crea un nuevo registro con el siguiente periodo.</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -169,6 +167,7 @@
                     <option value="activa">Activa</option>
                     <option value="cerrada">Cerrada</option>
                 </select>
+                <p class="text-[11px] text-gray-400">Cerrar una inversión solo indica que no está activa; los retiros se registran en liquidaciones.</p>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
                     <button type="submit" class="px-4 py-2 text-sm bg-green-600 text-white rounded-md">Guardar</button>
@@ -224,6 +223,7 @@
                     <option value="activa">Activa</option>
                     <option value="cerrada">Cerrada</option>
                 </select>
+                <p class="text-[11px] text-gray-400">Cerrar una inversión solo indica que no está activa; los retiros se registran en liquidaciones.</p>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
                     <button type="submit"
