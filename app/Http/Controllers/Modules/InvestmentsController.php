@@ -70,6 +70,7 @@ class InvestmentsController extends Controller
 
         if (!empty($data['continuation_id'])) {
             $investment = Investment::findOrFail($data['continuation_id']);
+            $investor = Investor::findOrFail($data['investor_id']);
 
             if ($investment->investor_id !== (int) $data['investor_id']) {
                 return back()->withErrors(['continuation_id' => 'La inversión seleccionada no pertenece al inversor.']);
@@ -83,13 +84,34 @@ class InvestmentsController extends Controller
                 return back()->withErrors(['end_date' => 'La fecha de finalización debe ser igual o posterior a la actual.']);
             }
 
+            $previousEndDate = $investment->end_date?->copy();
+            $nextStartDate = $previousEndDate?->copy()->addDay() ?? Carbon::now();
             $nextEndDate = $data['end_date'] ?? $investment->end_date?->copy()->addMonthNoOverflow()->toDateString();
             $nextEndDate = $nextEndDate ?? Carbon::now()->endOfMonth()->toDateString();
 
-            $investment->end_date = $nextEndDate;
+            $investment->status = 'cerrada';
+            $investment->closed_at = $previousEndDate ?? Carbon::now();
+            if (!$investment->end_date && $nextStartDate) {
+                $investment->end_date = $nextStartDate->copy()->subDay()->toDateString();
+            }
             $investment->save();
 
-            AuditLogger::log('Renovar inversión', $investment, $data);
+            $code = $this->generateCode($investor);
+
+            $newInvestment = Investment::create([
+                'investor_id' => $investor->id,
+                'code' => $code,
+                'amount_cop' => $investment->amount_cop,
+                'monthly_rate' => $investment->monthly_rate,
+                'start_date' => $nextStartDate?->toDateString(),
+                'end_date' => $nextEndDate,
+                'status' => 'activa',
+            ]);
+
+            AuditLogger::log('Renovar inversión', $newInvestment, [
+                'continuation_id' => $investment->id,
+                'end_date' => $nextEndDate,
+            ]);
 
             return redirect()->route('investments.index')->with('status', 'Inversión renovada');
         }

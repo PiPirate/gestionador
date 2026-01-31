@@ -131,7 +131,7 @@
                                 </option>
                             @endforeach
                         </select>
-                        <p class="text-[11px] text-gray-400 mt-1">Al continuar, se conserva el mismo código.</p>
+                        <p class="text-[11px] text-gray-400 mt-1">Al continuar, se crea un nuevo registro con el siguiente periodo.</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
