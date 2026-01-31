@@ -73,6 +73,7 @@ class LiquidationsController extends Controller
         ]);
 
         AuditLogger::log('Crear liquidación', $liquidation, $data);
+        $this->syncInvestmentClosure($investment, $capitalCop, $liquidation->due_date);
 
         return redirect()->route('liquidations.index')->with('status', 'Liquidación creada');
     }
@@ -107,6 +108,7 @@ class LiquidationsController extends Controller
         ]);
 
         AuditLogger::log('Actualizar liquidación', $liquidation, $data);
+        $this->syncInvestmentClosure($investment, $capitalCop, $liquidation->due_date);
 
         return redirect()->route('liquidations.index')->with('status', 'Liquidación actualizada');
     }
@@ -181,5 +183,26 @@ class LiquidationsController extends Controller
         }
 
         return [round($gain, 2), round($capital, 2)];
+    }
+
+    private function syncInvestmentClosure(Investment $investment, float $capitalCop, ?Carbon $closedAt): void
+    {
+        if ($capitalCop <= 0) {
+            return;
+        }
+
+        if ($investment->status !== 'cerrada') {
+            $investment->status = 'cerrada';
+        }
+
+        if (!$investment->closed_at) {
+            $investment->closed_at = $closedAt ?? now();
+        }
+
+        if (!$investment->end_date) {
+            $investment->end_date = ($closedAt ?? now())->toDateString();
+        }
+
+        $investment->save();
     }
 }

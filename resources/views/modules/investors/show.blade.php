@@ -9,10 +9,10 @@
             <a href="{{ route('investors.index') }}" class="text-sm text-blue-600 hover:underline">Volver</a>
         </div>
         <div id="investor-summary-cards" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-            <x-modules.card title="Total invertido">
+            <x-modules.card title="Ganancias generadas este mes">
                 <div class="text-2xl font-bold text-gray-900">
-                    {{ \App\Support\Currency::format($summary['total_invested'], 'cop') }}</div>
-                <p class="text-xs text-gray-500 mt-2">Capital histórico</p>
+                    {{ \App\Support\Currency::format($summary['monthly_gains'], 'cop') }}</div>
+                <p class="text-xs text-gray-500 mt-2">Acumulado mensual</p>
             </x-modules.card>
             <x-modules.card title="Capital en circulación">
                 <div class="text-2xl font-bold text-gray-900">

@@ -68,6 +68,14 @@ class Investment extends Model
         return max(0, $this->amount_cop - $this->withdrawnCapitalCop());
     }
 
+    public function gainForMonth(Carbon $month): float
+    {
+        $start = $month->copy()->startOfMonth();
+        $end = $month->copy()->endOfMonth();
+
+        return $this->gainBetween($start, $end);
+    }
+
     public function dailyGainCop(): float
     {
         $monthlyInterest = $this->monthlyInterestCop();
@@ -159,6 +167,32 @@ class Investment extends Model
         }
 
         return $this->amount_cop * ($this->monthly_rate / 100);
+    }
+
+    public function gainBetween(Carbon $start, Carbon $end): float
+    {
+        if (!$this->start_date || $this->amount_cop <= 0) {
+            return 0.0;
+        }
+
+        $rangeStart = $start->copy()->startOfDay();
+        $rangeEnd = $end->copy()->endOfDay();
+
+        $investmentEnd = $this->resolvedEndDate($rangeEnd);
+        if ($investmentEnd->lessThan($rangeStart)) {
+            return 0.0;
+        }
+
+        $periodStart = $this->start_date->greaterThan($rangeStart) ? $this->start_date->copy() : $rangeStart;
+        $periodEnd = $investmentEnd->lessThan($rangeEnd) ? $investmentEnd->copy() : $rangeEnd;
+
+        if ($periodEnd->lessThan($periodStart)) {
+            return 0.0;
+        }
+
+        $days = $periodStart->diffInDays($periodEnd, false) + 1;
+
+        return $this->dailyGainCop() * max(0, $days);
     }
 
     private function resolvedEndDate(?Carbon $asOf = null): Carbon
