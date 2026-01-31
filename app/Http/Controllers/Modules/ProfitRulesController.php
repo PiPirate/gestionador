@@ -11,16 +11,11 @@ use Illuminate\Validation\ValidationException;
 
 class ProfitRulesController extends Controller
 {
-    public function store(Request $request)
+    /**
+     * @return array<int, array{upTo: float|int|null, rate: float|int}>
+     */
+    private function parseTiers(array $data): array
     {
-        $data = $request->validate([
-            'tiers_json' => 'nullable|string',
-            'tiers_up_to' => 'nullable|array',
-            'tiers_up_to.*' => 'nullable|numeric|min:0',
-            'tiers_rate' => 'nullable|array',
-            'tiers_rate.*' => 'nullable|numeric|min:0',
-        ]);
-
         $tiers = [];
         if (!empty($data['tiers_json'])) {
             $decoded = json_decode($data['tiers_json'], true);
@@ -44,6 +39,21 @@ class ProfitRulesController extends Controller
             throw ValidationException::withMessages(['tiers_json' => 'Debes definir al menos un tramo.']);
         }
 
+        return $tiers;
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'tiers_json' => 'nullable|string',
+            'tiers_up_to' => 'nullable|array',
+            'tiers_up_to.*' => 'nullable|numeric|min:0',
+            'tiers_rate' => 'nullable|array',
+            'tiers_rate.*' => 'nullable|numeric|min:0',
+        ]);
+
+        $tiers = $this->parseTiers($data);
+
         $rule = ProfitRule::create([
             'tiers_json' => $tiers,
             'is_active' => false,
@@ -64,5 +74,44 @@ class ProfitRulesController extends Controller
         AuditLogger::log('Activar regla de rentabilidad', $profitRule, ['id' => $profitRule->id]);
 
         return redirect()->route('settings.index')->with('status', 'Regla de rentabilidad activada');
+    }
+
+    public function deactivate(ProfitRule $profitRule)
+    {
+        $profitRule->update(['is_active' => false]);
+
+        AuditLogger::log('Desactivar regla de rentabilidad', $profitRule, ['id' => $profitRule->id]);
+
+        return redirect()->route('settings.index')->with('status', 'Regla de rentabilidad desactivada');
+    }
+
+    public function update(Request $request, ProfitRule $profitRule)
+    {
+        $data = $request->validate([
+            'tiers_json' => 'nullable|string',
+            'tiers_up_to' => 'nullable|array',
+            'tiers_up_to.*' => 'nullable|numeric|min:0',
+            'tiers_rate' => 'nullable|array',
+            'tiers_rate.*' => 'nullable|numeric|min:0',
+        ]);
+
+        $tiers = $this->parseTiers($data);
+
+        $profitRule->update([
+            'tiers_json' => $tiers,
+        ]);
+
+        AuditLogger::log('Actualizar regla de rentabilidad', $profitRule, ['tiers' => $tiers]);
+
+        return redirect()->route('settings.index')->with('status', 'Regla de rentabilidad actualizada');
+    }
+
+    public function destroy(ProfitRule $profitRule)
+    {
+        $profitRule->delete();
+
+        AuditLogger::log('Eliminar regla de rentabilidad', $profitRule, ['id' => $profitRule->id]);
+
+        return redirect()->route('settings.index')->with('status', 'Regla de rentabilidad eliminada');
     }
 }

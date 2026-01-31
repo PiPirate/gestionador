@@ -151,30 +151,50 @@
                     </form>
                     <div class="divide-y divide-gray-100">
                         @forelse ($profitRules as $rule)
-                            <div class="flex items-center justify-between py-3">
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-900">Regla #{{ $rule->id }}</p>
-                                    <p class="text-xs text-gray-500">Creada: {{ $rule->created_at?->format('d/m/Y H:i') }}</p>
-                                    <p class="text-xs text-gray-500">Tramos: {{ is_array($rule->tiers_json) ? count($rule->tiers_json) : 0 }}</p>
-                                    @if ($rule->investments_count > 0)
-                                        <p class="text-xs text-gray-400">Usada en inversiones (solo lectura).</p>
-                                    @endif
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    @if ($rule->is_active)
-                                        <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Activa</span>
-                                    @else
-                                        <form method="POST" action="{{ route('settings.profit-rules.activate', $rule) }}">
+                            <div class="flex flex-col gap-3 py-3">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900">Regla #{{ $rule->id }}</p>
+                                        <p class="text-xs text-gray-500">Creada: {{ $rule->created_at?->format('d/m/Y H:i') }}</p>
+                                        <p class="text-xs text-gray-500">Tramos: {{ is_array($rule->tiers_json) ? count($rule->tiers_json) : 0 }}</p>
+                                        @if ($rule->investments_count > 0)
+                                            <p class="text-xs text-gray-400">Usada en inversiones.</p>
+                                        @endif
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        @if ($rule->is_active)
+                                            <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Activa</span>
+                                            <form method="POST" action="{{ route('settings.profit-rules.deactivate', $rule) }}">
+                                                @csrf
+                                                <button type="submit" class="text-xs text-gray-600">Desactivar</button>
+                                            </form>
+                                        @else
+                                            <form method="POST" action="{{ route('settings.profit-rules.activate', $rule) }}">
+                                                @csrf
+                                                <button type="submit" class="text-xs text-blue-600">Activar</button>
+                                            </form>
+                                        @endif
+                                        <form method="POST" action="{{ route('settings.profit-rules.store') }}">
                                             @csrf
-                                            <button type="submit" class="text-xs text-blue-600">Activar</button>
+                                            <input type="hidden" name="tiers_json" value='@json($rule->tiers_json)'>
+                                            <button type="submit" class="text-xs text-gray-600">Duplicar</button>
                                         </form>
-                                    @endif
-                                    <form method="POST" action="{{ route('settings.profit-rules.store') }}">
-                                        @csrf
-                                        <input type="hidden" name="tiers_json" value='@json($rule->tiers_json)'>
-                                        <button type="submit" class="text-xs text-gray-600">Duplicar</button>
-                                    </form>
+                                        <form method="POST" action="{{ route('settings.profit-rules.destroy', $rule) }}" onsubmit="return confirm('¿Eliminar regla?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-xs text-red-600">Eliminar</button>
+                                        </form>
+                                    </div>
                                 </div>
+                                <form method="POST" action="{{ route('settings.profit-rules.update', $rule) }}" class="space-y-2">
+                                    @csrf
+                                    @method('PUT')
+                                    <label class="text-xs text-gray-500">Editar JSON de tramos</label>
+                                    <textarea name="tiers_json" rows="4" class="w-full border rounded-md px-2 py-1 text-xs">{{ json_encode($rule->tiers_json, JSON_UNESCAPED_SLASHES) }}</textarea>
+                                    <div class="flex justify-end">
+                                        <button type="submit" class="text-xs text-blue-600">Guardar cambios</button>
+                                    </div>
+                                </form>
                             </div>
                         @empty
                             <p class="text-sm text-gray-500">No hay reglas registradas.</p>

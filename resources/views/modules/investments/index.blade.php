@@ -97,7 +97,7 @@
                                 class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $investment->status === 'cerrada' ? 'bg-gray-100 text-gray-700' : ($investment->status === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700') }}">{{ ucfirst($investment->status) }}</span>
                             <button data-modal-target="investment-edit" data-investment='@json($investment)'
                                 class="text-blue-600 text-xs">Editar</button>
-                            <form method="POST" action="{{ route('investments.destroy', $investment) }}" class="inline">
+                            <form method="POST" action="{{ route('investments.destroy', $investment) }}" class="inline" data-table-update data-table-target="#investments-table">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-600 text-xs"

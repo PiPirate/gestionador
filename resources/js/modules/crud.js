@@ -358,6 +358,7 @@ const refreshTableTarget = async (url, targetSelector) => {
         bindNumericFormatting(currentTable);
         attachContinuationToggles(currentTable);
         attachLiquidationFormHandlers(currentTable);
+        attachProfitRuleHandlers(currentTable);
     }
     const refreshTargets = currentTable?.dataset.refreshTarget
         ? currentTable.dataset.refreshTarget.split(',').map((target) => target.trim()).filter(Boolean)
@@ -374,6 +375,7 @@ const refreshTableTarget = async (url, targetSelector) => {
         bindNumericFormatting(currentTarget);
         attachContinuationToggles(currentTarget);
         attachLiquidationFormHandlers(currentTarget);
+        attachProfitRuleHandlers(currentTarget);
     });
 };
 
