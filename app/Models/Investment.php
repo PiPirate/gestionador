@@ -226,6 +226,10 @@ class Investment extends Model
 
         if ($this->status === 'cerrada') {
             if ($this->closed_at) {
+                if ($this->end_date && $this->end_date->lessThan($this->closed_at)) {
+                    return $this->end_date;
+                }
+
                 return $this->closed_at;
             }
 
