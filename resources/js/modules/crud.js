@@ -125,6 +125,92 @@ const formatCopDisplay = (value) => {
     return new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 };
 
+const calcMonthlyProfit = (amount, tiers) => {
+    if (!amount || amount <= 0) {
+        return 0;
+    }
+    const normalized = [...tiers]
+        .map((tier) => ({
+            upTo: tier.upTo ?? tier.up_to ?? null,
+            rate: Math.max(0, Number(tier.rate || 0)),
+        }))
+        .sort((a, b) => {
+            const aCap = a.upTo === null ? Infinity : Number(a.upTo);
+            const bCap = b.upTo === null ? Infinity : Number(b.upTo);
+            return aCap - bCap;
+        });
+
+    let remaining = amount;
+    let previousCap = 0;
+    let profit = 0;
+
+    normalized.forEach((tier) => {
+        if (remaining <= 0) {
+            return;
+        }
+        const cap = tier.upTo === null ? Infinity : Math.max(Number(tier.upTo), previousCap);
+        const chunk = Math.min(remaining, cap - previousCap);
+        if (chunk > 0) {
+            profit += chunk * tier.rate;
+            remaining -= chunk;
+        }
+        previousCap = cap;
+    });
+
+    return profit;
+};
+
+const attachProfitRuleHandlers = (root = document) => {
+    root.querySelectorAll('[data-profit-rule]').forEach((form) => {
+        if (form.dataset.boundProfit) {
+            return;
+        }
+        form.dataset.boundProfit = 'true';
+
+        let tiers = [];
+        try {
+            tiers = JSON.parse(form.dataset.profitTiers || '[]');
+        } catch (error) {
+            tiers = [];
+        }
+
+        const amountField = form.querySelector('[name="amount_cop"]');
+        const startField = form.querySelector('[data-profit-start]');
+        const endField = form.querySelector('[data-profit-end]');
+        const effectiveLabel = form.querySelector('[data-profit-effective]');
+        const monthlyLabel = form.querySelector('[data-profit-monthly]');
+        const dailyLabel = form.querySelector('[data-profit-daily]');
+
+        const updatePreview = () => {
+            if (!amountField || !effectiveLabel || !monthlyLabel || !dailyLabel) {
+                return;
+            }
+            const amount = parseCopValue(amountField.value || '0');
+            const monthlyProfit = calcMonthlyProfit(amount, tiers);
+            const referenceDate = endField?.value || startField?.value;
+            let monthDays = 0;
+            if (referenceDate) {
+                const parsed = new Date(referenceDate);
+                if (!Number.isNaN(parsed.getTime())) {
+                    monthDays = new Date(parsed.getFullYear(), parsed.getMonth() + 1, 0).getDate();
+                }
+            }
+            const dailyProfit = monthDays > 0 ? monthlyProfit / monthDays : 0;
+            const effectiveRate = amount > 0 ? (monthlyProfit / amount) * 100 : 0;
+
+            effectiveLabel.textContent = `${effectiveRate.toFixed(2)}%`;
+            monthlyLabel.textContent = monthlyProfit ? formatCopDisplay(monthlyProfit) : '—';
+            dailyLabel.textContent = dailyProfit ? formatCopDisplay(dailyProfit) : '—';
+        };
+
+        amountField?.addEventListener('input', updatePreview);
+        amountField?.addEventListener('blur', updatePreview);
+        startField?.addEventListener('change', updatePreview);
+        endField?.addEventListener('change', updatePreview);
+        updatePreview();
+    });
+};
+
 const attachLiquidationFormHandlers = (root = document) => {
     root.querySelectorAll('[data-liquidation-form]').forEach((form) => {
         if (form.dataset.liquidationBound) {
@@ -370,7 +456,25 @@ const attachModalListeners = (root = document) => {
                 const amountInput = document.getElementById('investment-amount');
                 amountInput.value = investment.amount_cop;
                 formatNumericInput(amountInput);
-                document.getElementById('investment-rate').value = investment.monthly_rate;
+                const effectiveRateLabel = document.getElementById('investment-effective-rate');
+                if (effectiveRateLabel) {
+                    const effectiveRate = investment.monthly_profit_snapshot && investment.amount_cop
+                        ? (investment.monthly_profit_snapshot / investment.amount_cop) * 100
+                        : investment.monthly_rate;
+                    effectiveRateLabel.textContent = `${Number(effectiveRate || 0).toFixed(2)}%`;
+                }
+                const monthlyProfitLabel = document.getElementById('investment-monthly-profit');
+                if (monthlyProfitLabel) {
+                    monthlyProfitLabel.textContent = investment.monthly_profit_snapshot
+                        ? formatCopDisplay(investment.monthly_profit_snapshot)
+                        : '—';
+                }
+                const dailyProfitLabel = document.getElementById('investment-daily-profit');
+                if (dailyProfitLabel) {
+                    dailyProfitLabel.textContent = investment.daily_interest_snapshot
+                        ? formatCopDisplay(investment.daily_interest_snapshot)
+                        : '—';
+                }
                 document.getElementById('investment-start').value = normalizeDateInput(investment.start_date);
                 document.getElementById('investment-end').value = normalizeDateInput(investment.end_date);
                 document.getElementById('investment-status').value = investment.status;
@@ -396,7 +500,25 @@ const attachModalListeners = (root = document) => {
                 const amountInput = document.getElementById('investment-edit-amount');
                 amountInput.value = investment.amount_cop;
                 formatNumericInput(amountInput);
-                document.getElementById('investment-edit-rate').value = investment.monthly_rate;
+                const effectiveRateLabel = document.getElementById('investment-edit-effective-rate');
+                if (effectiveRateLabel) {
+                    const effectiveRate = investment.monthly_profit_snapshot && investment.amount_cop
+                        ? (investment.monthly_profit_snapshot / investment.amount_cop) * 100
+                        : investment.monthly_rate;
+                    effectiveRateLabel.textContent = `${Number(effectiveRate || 0).toFixed(2)}%`;
+                }
+                const monthlyProfitLabel = document.getElementById('investment-edit-monthly-profit');
+                if (monthlyProfitLabel) {
+                    monthlyProfitLabel.textContent = investment.monthly_profit_snapshot
+                        ? formatCopDisplay(investment.monthly_profit_snapshot)
+                        : '—';
+                }
+                const dailyProfitLabel = document.getElementById('investment-edit-daily-profit');
+                if (dailyProfitLabel) {
+                    dailyProfitLabel.textContent = investment.daily_interest_snapshot
+                        ? formatCopDisplay(investment.daily_interest_snapshot)
+                        : '—';
+                }
                 document.getElementById('investment-edit-start').value = normalizeDateInput(investment.start_date);
                 document.getElementById('investment-edit-end').value = normalizeDateInput(investment.end_date);
                 document.getElementById('investment-edit-status').value = investment.status;
@@ -571,4 +693,5 @@ document.addEventListener('DOMContentLoaded', () => {
     bindNumericFormatting();
     attachContinuationToggles();
     attachLiquidationFormHandlers();
+    attachProfitRuleHandlers();
 });
