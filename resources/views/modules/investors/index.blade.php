@@ -39,7 +39,7 @@
                             Capital Invertido <span data-sort-arrow></span>
                         </button>
                         <button type="button" class="text-right" data-sortable data-sort-column="4">
-                            Ganancias Acum. <span data-sort-arrow></span>
+                            Ganancias disp. <span data-sort-arrow></span>
                         </button>
                         <span class="text-right">Estado</span>
                     </div>

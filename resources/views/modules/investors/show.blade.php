@@ -9,10 +9,10 @@
             <a href="{{ route('investors.index') }}" class="text-sm text-blue-600 hover:underline">Volver</a>
         </div>
         <div id="investor-summary-cards" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-            <x-modules.card title="Total invertido">
+            <x-modules.card title="Ganancias generadas este mes">
                 <div class="text-2xl font-bold text-gray-900">
-                    {{ \App\Support\Currency::format($summary['total_invested'], 'cop') }}</div>
-                <p class="text-xs text-gray-500 mt-2">Capital histórico</p>
+                    {{ \App\Support\Currency::format($summary['monthly_gains'], 'cop') }}</div>
+                <p class="text-xs text-gray-500 mt-2">Acumulado mensual</p>
             </x-modules.card>
             <x-modules.card title="Capital en circulación">
                 <div class="text-2xl font-bold text-gray-900">
@@ -22,12 +22,12 @@
             <x-modules.card title="Total retirado">
                 <div class="text-2xl font-bold text-gray-900">
                     {{ \App\Support\Currency::format($summary['total_withdrawn'], 'cop') }}</div>
-                <p class="text-xs text-gray-500 mt-2">Inversiones cerradas</p>
+                <p class="text-xs text-gray-500 mt-2">Retiros de capital registrados</p>
             </x-modules.card>
-            <x-modules.card title="Ganancias generadas">
+            <x-modules.card title="Ganancias disponibles">
                 <div class="text-2xl font-bold text-green-700">
                     {{ \App\Support\Currency::format($summary['total_gains'], 'cop') }}</div>
-                <p class="text-xs text-gray-500 mt-2">Acumuladas a la fecha</p>
+                <p class="text-xs text-gray-500 mt-2">Pendientes por retirar</p>
             </x-modules.card>
             <x-modules.card title="Tiempo invertido">
                 <div class="text-2xl font-bold text-gray-900">{{ $summary['total_days'] }} días</div>
@@ -94,6 +94,12 @@
                                 class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $investment->status === 'cerrada' ? 'bg-gray-100 text-gray-700' : ($investment->status === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700') }}">{{ ucfirst($investment->status) }}</span>
                             <button data-modal-target="investment-edit-investor" data-investment='@json($investment)'
                                 class="text-blue-600 text-xs ml-2">Editar</button>
+                            <form method="POST" action="{{ route('investments.destroy', $investment) }}" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 text-xs ml-2"
+                                    onclick="return confirm('¿Eliminar inversión?')">Eliminar</button>
+                            </form>
                         </span>
                     </div>
                 @empty
@@ -153,6 +159,7 @@
                     <option value="activa">Activa</option>
                     <option value="cerrada">Cerrada</option>
                 </select>
+                <p class="text-[11px] text-gray-400">Cerrar una inversión solo indica que no está activa; los retiros se registran en liquidaciones.</p>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
                     <button type="submit" class="px-4 py-2 text-sm bg-green-600 text-white rounded-md">Guardar</button>
@@ -202,6 +209,7 @@
                     <option value="activa">Activa</option>
                     <option value="cerrada">Cerrada</option>
                 </select>
+                <p class="text-[11px] text-gray-400">Cerrar una inversión solo indica que no está activa; los retiros se registran en liquidaciones.</p>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" data-close-modal class="px-4 py-2 text-sm border rounded-md">Cancelar</button>
                     <button type="submit"

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 class Investment extends Model
@@ -32,6 +33,72 @@ class Investment extends Model
     public function investor(): BelongsTo
     {
         return $this->belongsTo(Investor::class);
+    }
+
+    public function liquidations(): HasMany
+    {
+        return $this->hasMany(Liquidation::class);
+    }
+
+    public function withdrawnGainCop(): float
+    {
+        if ($this->relationLoaded('liquidations')) {
+            return (float) $this->liquidations
+                ->where('status', 'procesada')
+                ->sum('withdrawn_gain_cop');
+        }
+
+        return (float) $this->liquidations()
+            ->where('status', 'procesada')
+            ->sum('withdrawn_gain_cop');
+    }
+
+    public function withdrawnCapitalCop(): float
+    {
+        if ($this->relationLoaded('liquidations')) {
+            return (float) $this->liquidations
+                ->where('status', 'procesada')
+                ->sum('withdrawn_capital_cop');
+        }
+
+        return (float) $this->liquidations()
+            ->where('status', 'procesada')
+            ->sum('withdrawn_capital_cop');
+    }
+
+    public function availableGainCop(?Carbon $asOf = null): float
+    {
+        $available = $this->accumulatedGainCop($asOf) - $this->withdrawnGainCop();
+        if ($available <= 0) {
+            return 0.0;
+        }
+
+        return round($available, 2);
+    }
+
+    public function availableCapitalCop(): float
+    {
+        $available = $this->amount_cop - $this->withdrawnCapitalCop();
+        if ($available <= 0) {
+            return 0.0;
+        }
+
+        return round($available, 2);
+    }
+
+    public function gainForMonth(Carbon $month): float
+    {
+        $start = $month->copy()->startOfMonth();
+        $end = $month->copy()->endOfMonth();
+
+        return $this->gainBetween($start, $end);
+    }
+
+    public function gainForMonthToDate(?Carbon $asOf = null): float
+    {
+        $asOf = $asOf?->copy() ?? now();
+
+        return $this->gainBetween($asOf->copy()->startOfMonth(), $asOf);
     }
 
     public function dailyGainCop(): float
@@ -125,6 +192,32 @@ class Investment extends Model
         }
 
         return $this->amount_cop * ($this->monthly_rate / 100);
+    }
+
+    public function gainBetween(Carbon $start, Carbon $end): float
+    {
+        if (!$this->start_date || $this->amount_cop <= 0) {
+            return 0.0;
+        }
+
+        $rangeStart = $start->copy()->startOfDay();
+        $rangeEnd = $end->copy()->endOfDay();
+
+        $investmentEnd = $this->resolvedEndDate($rangeEnd);
+        if ($investmentEnd->lessThan($rangeStart)) {
+            return 0.0;
+        }
+
+        $periodStart = $this->start_date->greaterThan($rangeStart) ? $this->start_date->copy() : $rangeStart;
+        $periodEnd = $investmentEnd->lessThan($rangeEnd) ? $investmentEnd->copy() : $rangeEnd;
+
+        if ($periodEnd->lessThan($periodStart)) {
+            return 0.0;
+        }
+
+        $days = $periodStart->diffInDays($periodEnd, false) + 1;
+
+        return $this->dailyGainCop() * max(0, $days);
     }
 
     private function resolvedEndDate(?Carbon $asOf = null): Carbon
