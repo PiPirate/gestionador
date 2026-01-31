@@ -16,6 +16,7 @@ class DashboardController extends Controller
         $capitalCop = Investment::sum('amount_cop');
         $capitalLocal = Investment::sum('gains_cop') + Transaction::where('type', 'venta')->sum('amount_cop');
         $monthlyGain = Transaction::sum('profit_cop');
+        $investments = Investment::all();
 
         $metrics = [
             'capital_cop' => $capitalCop,
@@ -23,7 +24,9 @@ class DashboardController extends Controller
             'monthly_gain' => $monthlyGain,
             'investors_active' => Investor::count(),
             'avg_investment' => Investment::avg('amount_cop') ?? 0,
-            'avg_return' => Investment::avg('monthly_rate') ?? 0,
+            'avg_return' => $investments->isNotEmpty()
+                ? $investments->avg(fn (Investment $investment) => $investment->effectiveMonthlyRate())
+                : 0,
             'operations_month' => Transaction::count(),
         ];
 

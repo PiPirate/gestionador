@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use App\Models\ProfitRule;
 
 class Investment extends Model
 {
@@ -14,9 +15,13 @@ class Investment extends Model
 
     protected $fillable = [
         'investor_id',
+        'profit_rule_id',
         'code',
         'amount_cop',
         'monthly_rate',
+        'tiers_snapshot',
+        'monthly_profit_snapshot',
+        'daily_interest_snapshot',
         'start_date',
         'end_date',
         'gains_cop',
@@ -28,11 +33,17 @@ class Investment extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'closed_at' => 'datetime',
+        'tiers_snapshot' => 'array',
     ];
 
     public function investor(): BelongsTo
     {
         return $this->belongsTo(Investor::class);
+    }
+
+    public function profitRule(): BelongsTo
+    {
+        return $this->belongsTo(ProfitRule::class);
     }
 
     public function liquidations(): HasMany
@@ -103,6 +114,10 @@ class Investment extends Model
 
     public function dailyGainCop(): float
     {
+        if ($this->daily_interest_snapshot > 0) {
+            return (float) $this->daily_interest_snapshot;
+        }
+
         $monthlyInterest = $this->monthlyInterestCop();
         if ($monthlyInterest <= 0) {
             return 0.0;
@@ -187,11 +202,28 @@ class Investment extends Model
 
     public function monthlyInterestCop(): float
     {
+        if ($this->monthly_profit_snapshot > 0) {
+            return (float) $this->monthly_profit_snapshot;
+        }
+
         if ($this->amount_cop <= 0) {
             return 0.0;
         }
 
         return $this->amount_cop * ($this->monthly_rate / 100);
+    }
+
+    public function effectiveMonthlyRate(): float
+    {
+        if ($this->amount_cop <= 0) {
+            return 0.0;
+        }
+
+        if ($this->monthly_profit_snapshot > 0) {
+            return round(($this->monthly_profit_snapshot / $this->amount_cop) * 100, 2);
+        }
+
+        return (float) $this->monthly_rate;
     }
 
     public function gainBetween(Carbon $start, Carbon $end): float
