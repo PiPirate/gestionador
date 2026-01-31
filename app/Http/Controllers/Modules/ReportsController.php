@@ -43,7 +43,7 @@ class ReportsController extends Controller
             'investments' => [
                 'count' => Investment::count(),
                 'capital_cop' => Investment::sum('amount_cop'),
-                'avg_rate' => Investment::avg('monthly_rate'),
+                'avg_rate' => Investment::all()->avg(fn (Investment $investment) => $investment->effectiveMonthlyRate()),
             ],
             'liquidations' => [
                 'pending' => (clone $liquidations)->where('status', 'pendiente')->count(),

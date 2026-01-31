@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
+use App\Models\ProfitRule;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\AuditLogger;
@@ -36,8 +37,10 @@ class SettingsController extends Controller
         ];
 
         $users = User::orderBy('name')->get();
+        $profitRules = ProfitRule::withCount('investments')->orderByDesc('created_at')->get();
+        $activeProfitRule = $profitRules->firstWhere('is_active', true);
 
-        return view('modules.settings.index', compact('rates', 'security', 'notifications', 'users'));
+        return view('modules.settings.index', compact('rates', 'security', 'notifications', 'users', 'profitRules', 'activeProfitRule'));
     }
 
     public function updateRates(Request $request)

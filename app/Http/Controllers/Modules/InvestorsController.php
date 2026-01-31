@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
 use App\Models\Investor;
+use App\Models\ProfitRule;
 use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 
@@ -106,6 +107,9 @@ class InvestorsController extends Controller
 
         ];
 
-        return view('modules.investors.show', compact('investor', 'investments', 'summary', 'continuableInvestments'));
+        $activeProfitRule = ProfitRule::where('is_active', true)->first();
+        $profitRules = ProfitRule::orderByDesc('created_at')->get();
+
+        return view('modules.investors.show', compact('investor', 'investments', 'summary', 'continuableInvestments', 'activeProfitRule', 'profitRules'));
     }
 }

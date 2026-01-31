@@ -62,7 +62,7 @@
                             Monto <span data-sort-arrow></span>
                         </button>
                         <button type="button" class="text-left" data-sortable data-sort-column="3">
-                            % Mensual <span data-sort-arrow></span>
+                            % Efectivo <span data-sort-arrow></span>
                         </button>
                         <button type="button" class="text-left" data-sortable data-sort-column="4">
                             Fecha Inicio <span data-sort-arrow></span>
@@ -85,7 +85,7 @@
                         <span class="text-gray-700" data-cell>{{ $investment->investor?->name }}</span>
                         <span class="text-gray-900 font-semibold" data-cell>
                             {{ \App\Support\Currency::format($investment->amount_cop, 'cop') }}</span>
-                        <span class="text-green-700 font-semibold" data-cell>{{ number_format($investment->monthly_rate, 2) }}%</span>
+                        <span class="text-green-700 font-semibold" data-cell>{{ number_format($investment->effectiveMonthlyRate(), 2) }}%</span>
                         <span class="text-gray-700" data-cell>{{ optional($investment->start_date)->format('d/m/Y') }}</span>
                         <span class="text-gray-700" data-cell>{{ optional($investment->end_date)->format('d/m/Y') ?? '—' }}</span>
                         <span class="text-gray-900 font-semibold" data-cell>
@@ -97,7 +97,7 @@
                                 class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ $investment->status === 'cerrada' ? 'bg-gray-100 text-gray-700' : ($investment->status === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700') }}">{{ ucfirst($investment->status) }}</span>
                             <button data-modal-target="investment-edit" data-investment='@json($investment)'
                                 class="text-blue-600 text-xs">Editar</button>
-                            <form method="POST" action="{{ route('investments.destroy', $investment) }}" class="inline">
+                            <form method="POST" action="{{ route('investments.destroy', $investment) }}" class="inline" data-table-update data-table-target="#investments-table">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-600 text-xs"
@@ -116,18 +116,25 @@
     <div id="modal-investment-create" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
             <h3 class="text-lg font-semibold mb-4">Nueva Inversión</h3>
-            <form method="POST" action="{{ route('investments.store') }}" class="space-y-3" data-table-update data-table-target="#investments-table">
+            <form method="POST" action="{{ route('investments.store') }}" class="space-y-3" data-table-update data-table-target="#investments-table" data-profit-rule data-profit-tiers='@json($activeProfitRule?->tiers_json ?? [])'>
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <select name="investor_id" class="border rounded-md px-3 py-2 w-full" required>
-                        <option value="">Selecciona inversor</option>
-                        @foreach ($investors as $investor)
-                            <option value="{{ $investor->id }}">{{ $investor->name }}</option>
-                        @endforeach
-                    </select>
+                    <div>
+                        <label class="text-xs text-gray-500">Inversor</label>
+                        <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar inversor"
+                            data-select-search data-select-target="#investment-investor-create" />
+                        <select name="investor_id" id="investment-investor-create" class="border rounded-md px-3 py-2 w-full" required>
+                            <option value="">Selecciona inversor</option>
+                            @foreach ($investors as $investor)
+                                <option value="{{ $investor->id }}">{{ $investor->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div>
                         <label class="text-xs text-gray-500">Código</label>
-                        <select name="continuation_id" class="border rounded-md px-3 py-2 w-full" data-continuation-select>
+                        <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar inversión"
+                            data-select-search data-select-target="#investment-continuation-create" />
+                        <select name="continuation_id" id="investment-continuation-create" class="border rounded-md px-3 py-2 w-full" data-continuation-select>
                             <option value="">Nueva inversión (código automático)</option>
                             @foreach ($continuableInvestments as $continuable)
                                 <option value="{{ $continuable->id }}">
@@ -143,11 +150,29 @@
                         data-format="cop"
                         data-continuation-field
                         required />
-                    <x-text-input name="monthly_rate" type="text" placeholder="% mensual" class="w-full"
-                        data-format="percent"
-                        data-continuation-field
-                        required />
+                    <div class="rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+                        <p class="font-semibold text-gray-700">Rentabilidad calculada</p>
+                        <p>% efectivo: <span data-profit-effective>0%</span></p>
+                        <p>Ganancia mensual: <span data-profit-monthly>—</span></p>
+                        <p>Interés diario: <span data-profit-daily>—</span></p>
+                    </div>
                 </div>
+                <div>
+                    <label class="text-xs text-gray-500">Regla de rentabilidad</label>
+                    <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar regla"
+                        data-select-search data-select-target="#investment-profit-rule-create" />
+                    <select name="profit_rule_id" id="investment-profit-rule-create" class="border rounded-md px-3 py-2 w-full">
+                        <option value="">Regla activa</option>
+                        @foreach ($profitRules as $rule)
+                            <option value="{{ $rule->id }}" {{ $rule->is_active ? 'selected' : '' }}>
+                                Regla #{{ $rule->id }} · {{ $rule->created_at?->format('d/m/Y') }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @if (!$activeProfitRule)
+                    <p class="text-xs text-red-600">No hay una regla de rentabilidad activa. Crea o activa una desde Configuración.</p>
+                @endif
                 <div>
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fechas de inversión</p>
                     <p class="text-xs text-gray-400">Inicio y finalización del periodo de inversión.</p>
@@ -155,11 +180,11 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs text-gray-500">Fecha de inicio</label>
-                        <x-text-input name="start_date" type="date" class="w-full" data-continuation-field required />
+                        <x-text-input name="start_date" type="date" class="w-full" data-continuation-field data-profit-start required />
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">Fecha de finalización</label>
-                        <x-text-input name="end_date" type="date" class="w-full" />
+                        <x-text-input name="end_date" type="date" class="w-full" data-profit-end />
                     </div>
                 </div>
                 <select name="status" class="border rounded-md px-3 py-2 w-full">
@@ -182,12 +207,16 @@
                 @csrf
                 @method('PUT')
                 <div class="grid grid-cols-2 gap-3">
-                    <select name="investor_id" id="investment-investor" class="border rounded-md px-3 py-2 w-full"
-                        required>
-                        @foreach ($investors as $investor)
-                            <option value="{{ $investor->id }}">{{ $investor->name }}</option>
-                        @endforeach
-                    </select>
+                    <div>
+                        <label class="text-xs text-gray-500">Inversor</label>
+                        <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar inversor"
+                            data-select-search data-select-target="#investment-investor" />
+                        <select name="investor_id" id="investment-investor" class="border rounded-md px-3 py-2 w-full" required>
+                            @foreach ($investors as $investor)
+                                <option value="{{ $investor->id }}">{{ $investor->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div>
                         <label class="text-xs text-gray-500">Código asignado</label>
                         <x-text-input name="code" id="investment-code" placeholder="Código" class="w-full" disabled />
@@ -196,8 +225,25 @@
                 <div class="grid grid-cols-2 gap-3">
                     <x-text-input name="amount_cop" id="investment-amount" type="text"
                         placeholder="Monto (COP)" class="w-full" data-format="cop" required />
-                    <x-text-input name="monthly_rate" id="investment-rate" type="number" step="0.01"
-                        placeholder="% mensual" class="w-full" required />
+                    <div class="rounded-md border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+                        <p class="font-semibold text-gray-700">Rentabilidad calculada</p>
+                        <p>% efectivo: <span id="investment-effective-rate">—</span></p>
+                        <p>Ganancia mensual: <span id="investment-monthly-profit">—</span></p>
+                        <p>Interés diario: <span id="investment-daily-profit">—</span></p>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500">Regla de rentabilidad</label>
+                    <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar regla"
+                        data-select-search data-select-target="#investment-profit-rule-edit" />
+                    <select name="profit_rule_id" id="investment-profit-rule-edit" class="border rounded-md px-3 py-2 w-full">
+                        <option value="">Regla activa</option>
+                        @foreach ($profitRules as $rule)
+                            <option value="{{ $rule->id }}">
+                                Regla #{{ $rule->id }} · {{ $rule->created_at?->format('d/m/Y') }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fechas de inversión</p>
