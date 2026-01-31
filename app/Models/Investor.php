@@ -69,10 +69,10 @@ class Investor extends Model
     public function totalGainsCop(): float
     {
         if ($this->relationLoaded('investments')) {
-            return (float) $this->investments->sum(fn (Investment $investment) => $investment->accumulatedGainCop());
+            return (float) $this->investments->sum(fn (Investment $investment) => $investment->availableGainCop());
         }
 
-        return (float) $this->investments()->get()->sum(fn (Investment $investment) => $investment->accumulatedGainCop());
+        return (float) $this->investments()->get()->sum(fn (Investment $investment) => $investment->availableGainCop());
     }
 
     public function totalDaysInvested(): int

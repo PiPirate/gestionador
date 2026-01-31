@@ -24,10 +24,10 @@
                     {{ \App\Support\Currency::format($summary['total_withdrawn'], 'cop') }}</div>
                 <p class="text-xs text-gray-500 mt-2">Retiros de capital registrados</p>
             </x-modules.card>
-            <x-modules.card title="Ganancias generadas">
+            <x-modules.card title="Ganancias disponibles">
                 <div class="text-2xl font-bold text-green-700">
                     {{ \App\Support\Currency::format($summary['total_gains'], 'cop') }}</div>
-                <p class="text-xs text-gray-500 mt-2">Acumuladas a la fecha</p>
+                <p class="text-xs text-gray-500 mt-2">Pendientes por retirar</p>
             </x-modules.card>
             <x-modules.card title="Tiempo invertido">
                 <div class="text-2xl font-bold text-gray-900">{{ $summary['total_days'] }} días</div>
