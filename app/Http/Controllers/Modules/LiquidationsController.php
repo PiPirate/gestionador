@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Modules;
 
 use App\Http\Controllers\Controller;
 use App\Models\Investor;
+use App\Models\Investment;
 use App\Models\Liquidation;
-use App\Models\Setting;
 use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class LiquidationsController extends Controller
 {
@@ -16,7 +17,7 @@ class LiquidationsController extends Controller
     {
         $status = $request->get('status', 'pendiente');
 
-        $liquidationsQuery = Liquidation::with('investor')->orderByDesc('due_date');
+        $liquidationsQuery = Liquidation::with(['investor', 'investment'])->orderByDesc('due_date');
         if ($status !== 'todas') {
             $liquidationsQuery->where('status', $status);
         }
@@ -32,54 +33,82 @@ class LiquidationsController extends Controller
         ];
 
         $investors = Investor::orderBy('name')->get();
+        $investments = Investment::with(['investor', 'liquidations'])
+            ->orderByDesc('start_date')
+            ->get();
 
-        return view('modules.liquidations.index', compact('summary', 'liquidations', 'status', 'investors'));
+        return view('modules.liquidations.index', compact('summary', 'liquidations', 'status', 'investors', 'investments'));
     }
 
     public function store(Request $request)
     {
         $data = $this->validateLiquidation($request);
-        $investor = Investor::findOrFail($data['investor_id']);
+        $investment = Investment::with('liquidations')->findOrFail($data['investment_id']);
 
-        $code = $this->generateCode($investor);
-        [$gainCop, $totalCop] = $this->calculateAmounts($data['amount_usd'], $data['monthly_rate']);
+        if ($investment->investor_id !== (int) $data['investor_id']) {
+            throw ValidationException::withMessages([
+                'investment_id' => 'La inversión seleccionada no pertenece al inversor.',
+            ]);
+        }
+
+        [$gainCop, $capitalCop] = $this->resolveWithdrawals($investment, $data);
+        $periodDate = $data['due_date'] ?? now()->toDateString();
+
+        $code = $this->generateCode($investment->investor);
 
         $liquidation = Liquidation::create([
-            'investor_id' => $investor->id,
+            'investor_id' => $investment->investor_id,
+            'investment_id' => $investment->id,
             'code' => $code,
-            'amount_usd' => $data['amount_usd'],
-            'monthly_rate' => $data['monthly_rate'],
-            'period_start' => $data['period_start'],
-            'period_end' => $data['period_end'],
+            'amount_usd' => 0,
+            'monthly_rate' => $investment->monthly_rate ?? 0,
+            'period_start' => $periodDate,
+            'period_end' => $periodDate,
             'gain_cop' => $gainCop,
-            'total_cop' => $totalCop,
+            'withdrawn_gain_cop' => $gainCop,
+            'withdrawn_capital_cop' => $capitalCop,
+            'total_cop' => $gainCop + $capitalCop,
             'status' => $data['status'] ?? 'pendiente',
-            'due_date' => $data['due_date'] ?? $data['period_end'],
+            'due_date' => $data['due_date'] ?? $periodDate,
         ]);
 
         AuditLogger::log('Crear liquidación', $liquidation, $data);
+        $this->syncInvestmentClosure($investment, $capitalCop, $liquidation->due_date);
 
         return redirect()->route('liquidations.index')->with('status', 'Liquidación creada');
     }
 
     public function update(Request $request, Liquidation $liquidation)
     {
-        $data = $this->validateLiquidation($request, true);
-        [$gainCop, $totalCop] = $this->calculateAmounts($data['amount_usd'], $data['monthly_rate']);
+        $data = $this->validateLiquidation($request);
+        $investment = Investment::with('liquidations')->findOrFail($data['investment_id']);
+
+        if ($investment->investor_id !== (int) $data['investor_id']) {
+            throw ValidationException::withMessages([
+                'investment_id' => 'La inversión seleccionada no pertenece al inversor.',
+            ]);
+        }
+
+        [$gainCop, $capitalCop] = $this->resolveWithdrawals($investment, $data, $liquidation);
+        $periodDate = $data['due_date'] ?? $liquidation->due_date ?? now()->toDateString();
 
         $liquidation->update([
-            'investor_id' => $data['investor_id'],
-            'amount_usd' => $data['amount_usd'],
-            'monthly_rate' => $data['monthly_rate'],
-            'period_start' => $data['period_start'],
-            'period_end' => $data['period_end'],
+            'investor_id' => $investment->investor_id,
+            'investment_id' => $investment->id,
+            'amount_usd' => 0,
+            'monthly_rate' => $investment->monthly_rate ?? 0,
+            'period_start' => $periodDate,
+            'period_end' => $periodDate,
             'gain_cop' => $gainCop,
-            'total_cop' => $totalCop,
+            'withdrawn_gain_cop' => $gainCop,
+            'withdrawn_capital_cop' => $capitalCop,
+            'total_cop' => $gainCop + $capitalCop,
             'status' => $data['status'] ?? $liquidation->status,
-            'due_date' => $data['due_date'] ?? $liquidation->due_date,
+            'due_date' => $data['due_date'] ?? $periodDate,
         ]);
 
         AuditLogger::log('Actualizar liquidación', $liquidation, $data);
+        $this->syncInvestmentClosure($investment, $capitalCop, $liquidation->due_date);
 
         return redirect()->route('liquidations.index')->with('status', 'Liquidación actualizada');
     }
@@ -104,14 +133,13 @@ class LiquidationsController extends Controller
         return redirect()->route('liquidations.index')->with('status', 'Liquidación eliminada');
     }
 
-    private function validateLiquidation(Request $request, bool $isUpdate = false): array
+    private function validateLiquidation(Request $request): array
     {
         return $request->validate([
             'investor_id' => 'required|exists:investors,id',
-            'amount_usd' => 'required|numeric|min:0',
-            'monthly_rate' => 'required|numeric|min:0',
-            'period_start' => 'required|date',
-            'period_end' => 'required|date|after_or_equal:period_start',
+            'investment_id' => 'required|exists:investments,id',
+            'withdraw_gain_cop' => 'nullable|numeric|min:0',
+            'withdraw_capital_cop' => 'nullable|numeric|min:0',
             'due_date' => 'nullable|date',
             'status' => 'nullable|in:pendiente,procesada',
         ]);
@@ -123,13 +151,58 @@ class LiquidationsController extends Controller
         return 'L' . $investor->id . $sequence;
     }
 
-    private function calculateAmounts(float $amountUsd, float $monthlyRate): array
+    private function resolveWithdrawals(Investment $investment, array $data, ?Liquidation $liquidation = null): array
     {
-        $rateSell = (float) (Setting::where('key', 'rate_sell')->value('value') ?? 4000);
-        $gainUsd = $amountUsd * ($monthlyRate / 100);
-        $gainCop = $gainUsd * $rateSell;
-        $totalCop = ($amountUsd + $gainUsd) * $rateSell;
+        $gain = (float) ($data['withdraw_gain_cop'] ?? 0);
+        $capital = (float) ($data['withdraw_capital_cop'] ?? 0);
 
-        return [$gainCop, $totalCop];
+        $availableGain = $investment->availableGainCop();
+        $availableCapital = $investment->availableCapitalCop();
+
+        if ($liquidation && $liquidation->investment_id === $investment->id) {
+            $availableGain += (float) $liquidation->withdrawn_gain_cop;
+            $availableCapital += (float) $liquidation->withdrawn_capital_cop;
+        }
+
+        if ($gain <= 0 && $capital <= 0) {
+            throw ValidationException::withMessages([
+                'withdraw_gain_cop' => 'Debes indicar un retiro de ganancias o capital.',
+            ]);
+        }
+
+        if ($gain > $availableGain) {
+            throw ValidationException::withMessages([
+                'withdraw_gain_cop' => 'El retiro de ganancias supera el disponible.',
+            ]);
+        }
+
+        if ($capital > $availableCapital) {
+            throw ValidationException::withMessages([
+                'withdraw_capital_cop' => 'El retiro de capital supera el disponible.',
+            ]);
+        }
+
+        return [round($gain, 2), round($capital, 2)];
+    }
+
+    private function syncInvestmentClosure(Investment $investment, float $capitalCop, ?Carbon $closedAt): void
+    {
+        if ($capitalCop <= 0) {
+            return;
+        }
+
+        if ($investment->status !== 'cerrada') {
+            $investment->status = 'cerrada';
+        }
+
+        if (!$investment->closed_at) {
+            $investment->closed_at = $closedAt ?? now();
+        }
+
+        if (!$investment->end_date) {
+            $investment->end_date = ($closedAt ?? now())->toDateString();
+        }
+
+        $investment->save();
     }
 }

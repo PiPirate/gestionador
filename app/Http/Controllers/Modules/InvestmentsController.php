@@ -141,11 +141,6 @@ class InvestmentsController extends Controller
 
     public function destroy(Investment $investment)
     {
-        if ($investment->status === 'cerrada') {
-            return redirect()->route('investments.index')
-                ->with('status', 'Las inversiones cerradas se mantienen en el historial.');
-        }
-
         $investment->delete();
         AuditLogger::log('Eliminar inversión', $investment, ['id' => $investment->id]);
 
