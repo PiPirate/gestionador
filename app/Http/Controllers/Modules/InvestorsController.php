@@ -98,7 +98,7 @@ class InvestorsController extends Controller
             ->sortByDesc('start_date');
 
         $summary = [
-            'monthly_gains' => $investor->investments->sum(fn ($investment) => $investment->gainForMonth(now())),
+            'monthly_gains' => $investor->investments->sum(fn ($investment) => $investment->gainForMonthToDate()),
             'total_withdrawn' => $investor->totalWithdrawnCop(),
             'total_gains' => $investor->totalGainsCop(),
             'total_days' => $investor->totalDaysInvested(),

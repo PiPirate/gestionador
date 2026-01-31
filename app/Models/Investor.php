@@ -60,10 +60,14 @@ class Investor extends Model
     public function totalWithdrawnCop(): float
     {
         if ($this->relationLoaded('liquidations')) {
-            return (float) $this->liquidations->sum('withdrawn_capital_cop');
+            return (float) $this->liquidations
+                ->where('status', 'procesada')
+                ->sum('withdrawn_capital_cop');
         }
 
-        return (float) $this->liquidations()->sum('withdrawn_capital_cop');
+        return (float) $this->liquidations()
+            ->where('status', 'procesada')
+            ->sum('withdrawn_capital_cop');
     }
 
     public function totalGainsCop(): float

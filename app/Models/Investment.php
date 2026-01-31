@@ -43,29 +43,47 @@ class Investment extends Model
     public function withdrawnGainCop(): float
     {
         if ($this->relationLoaded('liquidations')) {
-            return (float) $this->liquidations->sum('withdrawn_gain_cop');
+            return (float) $this->liquidations
+                ->where('status', 'procesada')
+                ->sum('withdrawn_gain_cop');
         }
 
-        return (float) $this->liquidations()->sum('withdrawn_gain_cop');
+        return (float) $this->liquidations()
+            ->where('status', 'procesada')
+            ->sum('withdrawn_gain_cop');
     }
 
     public function withdrawnCapitalCop(): float
     {
         if ($this->relationLoaded('liquidations')) {
-            return (float) $this->liquidations->sum('withdrawn_capital_cop');
+            return (float) $this->liquidations
+                ->where('status', 'procesada')
+                ->sum('withdrawn_capital_cop');
         }
 
-        return (float) $this->liquidations()->sum('withdrawn_capital_cop');
+        return (float) $this->liquidations()
+            ->where('status', 'procesada')
+            ->sum('withdrawn_capital_cop');
     }
 
     public function availableGainCop(?Carbon $asOf = null): float
     {
-        return max(0, $this->accumulatedGainCop($asOf) - $this->withdrawnGainCop());
+        $available = $this->accumulatedGainCop($asOf) - $this->withdrawnGainCop();
+        if ($available <= 0) {
+            return 0.0;
+        }
+
+        return round($available, 2);
     }
 
     public function availableCapitalCop(): float
     {
-        return max(0, $this->amount_cop - $this->withdrawnCapitalCop());
+        $available = $this->amount_cop - $this->withdrawnCapitalCop();
+        if ($available <= 0) {
+            return 0.0;
+        }
+
+        return round($available, 2);
     }
 
     public function gainForMonth(Carbon $month): float
@@ -74,6 +92,13 @@ class Investment extends Model
         $end = $month->copy()->endOfMonth();
 
         return $this->gainBetween($start, $end);
+    }
+
+    public function gainForMonthToDate(?Carbon $asOf = null): float
+    {
+        $asOf = $asOf?->copy() ?? now();
+
+        return $this->gainBetween($asOf->copy()->startOfMonth(), $asOf);
     }
 
     public function dailyGainCop(): float
