@@ -211,30 +211,64 @@ const attachProfitRuleHandlers = (root = document) => {
     });
 };
 
-const attachSelectSearch = (root = document) => {
-    root.querySelectorAll('[data-select-search]').forEach((input) => {
-        if (input.dataset.boundSearch) {
+const enhanceSelects = (root = document) => {
+    root.querySelectorAll('select').forEach((select) => {
+        if (select.dataset.enhanced || select.options.length <= 5) {
             return;
         }
-        input.dataset.boundSearch = 'true';
-        const targetSelector = input.dataset.selectTarget;
-        if (!targetSelector) {
-            return;
-        }
-        const select = root.querySelector(targetSelector) || document.querySelector(targetSelector);
-        if (!select) {
-            return;
-        }
-        input.addEventListener('input', () => {
-            const query = input.value.toLowerCase();
-            Array.from(select.options).forEach((option) => {
-                if (!option.value) {
-                    option.hidden = false;
-                    return;
-                }
-                option.hidden = !option.textContent.toLowerCase().includes(query);
-            });
+        select.dataset.enhanced = 'true';
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = select.options[0]?.textContent || 'Selecciona';
+        input.className = 'w-full border rounded-md px-3 py-2 text-sm';
+        const list = document.createElement('div');
+        list.className = 'absolute z-10 mt-1 w-full max-h-48 overflow-auto rounded-md border bg-white text-sm shadow hidden';
+        const options = Array.from(select.options).filter((option) => option.value);
+
+        const renderOptions = (query = '') => {
+            list.innerHTML = '';
+            options
+                .filter((option) => option.textContent.toLowerCase().includes(query))
+                .forEach((option) => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'block w-full text-left px-3 py-2 hover:bg-gray-100';
+                    item.textContent = option.textContent;
+                    item.addEventListener('click', () => {
+                        select.value = option.value;
+                        input.value = option.textContent;
+                        list.classList.add('hidden');
+                        select.dispatchEvent(new Event('change'));
+                    });
+                    list.appendChild(item);
+                });
+        };
+
+        input.addEventListener('focus', () => {
+            renderOptions(input.value.toLowerCase());
+            list.classList.remove('hidden');
         });
+        input.addEventListener('input', () => {
+            renderOptions(input.value.toLowerCase());
+            list.classList.remove('hidden');
+        });
+        input.addEventListener('blur', () => {
+            setTimeout(() => list.classList.add('hidden'), 150);
+        });
+
+        const selectedOption = select.selectedOptions[0];
+        if (selectedOption && selectedOption.value) {
+            input.value = selectedOption.textContent;
+        }
+
+        select.classList.add('hidden');
+        select.parentNode?.insertBefore(wrapper, select);
+        wrapper.appendChild(input);
+        wrapper.appendChild(list);
+        wrapper.appendChild(select);
+        renderOptions();
     });
 };
 
@@ -249,14 +283,19 @@ const attachLiquidationFormHandlers = (root = document) => {
         const investmentSelect = form.querySelector('[data-liquidation-investment]');
         const gainInput = form.querySelector('[data-liquidation-gain]');
         const capitalInput = form.querySelector('[data-liquidation-capital]');
+        const totalGainInput = form.querySelector('[data-liquidation-total-gain]');
         const gainAvailable = form.querySelector('[data-liquidation-available-gain]');
         const capitalAvailable = form.querySelector('[data-liquidation-available-capital]');
+        const totalAvailable = form.querySelector('[data-liquidation-available-total]');
 
-        if (!investorSelect || !investmentSelect) {
+        if (!investorSelect) {
             return;
         }
 
         const updateInvestmentOptions = () => {
+            if (!investmentSelect) {
+                return;
+            }
             const investorId = investorSelect.value;
             const options = Array.from(investmentSelect.options);
             options.forEach((option) => {
@@ -278,47 +317,65 @@ const attachLiquidationFormHandlers = (root = document) => {
         };
 
         const updateInvestmentDetails = () => {
-            const option = investmentSelect.selectedOptions[0];
-            const availableGain = option?.dataset.availableGain ? Number(option.dataset.availableGain) : 0;
-            const availableCapital = option?.dataset.availableCapital ? Number(option.dataset.availableCapital) : 0;
+            if (investmentSelect) {
+                const option = investmentSelect.selectedOptions[0];
+                const availableGain = option?.dataset.availableGain ? Number(option.dataset.availableGain) : 0;
+                const availableCapital = option?.dataset.availableCapital ? Number(option.dataset.availableCapital) : 0;
 
-            if (gainAvailable) {
-                gainAvailable.textContent = formatCopDisplay(availableGain);
-            }
-            if (capitalAvailable) {
-                capitalAvailable.textContent = formatCopDisplay(availableCapital);
-            }
-            if (gainInput) {
-                gainInput.max = availableGain.toFixed(2);
-                gainInput.disabled = availableGain <= 0;
-                if (gainInput.disabled) {
-                    gainInput.value = '';
+                if (gainAvailable) {
+                    gainAvailable.textContent = formatCopDisplay(availableGain);
                 }
-                const currentGain = parseCopValue(gainInput.value || '0');
-                if (!gainInput.disabled && currentGain > availableGain) {
-                    gainInput.value = availableGain.toFixed(2);
-                    formatNumericInput(gainInput);
+                if (capitalAvailable) {
+                    capitalAvailable.textContent = formatCopDisplay(availableCapital);
                 }
-            }
+                if (gainInput) {
+                    gainInput.max = availableGain.toFixed(2);
+                    gainInput.disabled = availableGain <= 0;
+                    if (gainInput.disabled) {
+                        gainInput.value = '';
+                    }
+                    const currentGain = parseCopValue(gainInput.value || '0');
+                    if (!gainInput.disabled && currentGain > availableGain) {
+                        gainInput.value = availableGain.toFixed(2);
+                        formatNumericInput(gainInput);
+                    }
+                }
 
-            if (capitalInput) {
-                capitalInput.max = availableCapital.toFixed(2);
-                capitalInput.disabled = availableCapital <= 0;
-                if (capitalInput.disabled) {
-                    capitalInput.value = '';
+                if (capitalInput) {
+                    capitalInput.max = availableCapital.toFixed(2);
+                    capitalInput.disabled = availableCapital <= 0;
+                    if (capitalInput.disabled) {
+                        capitalInput.value = '';
+                    }
+                    const currentCapital = parseCopValue(capitalInput.value || '0');
+                    if (!capitalInput.disabled && currentCapital > availableCapital) {
+                        capitalInput.value = availableCapital.toFixed(2);
+                        formatNumericInput(capitalInput);
+                    }
                 }
-                const currentCapital = parseCopValue(capitalInput.value || '0');
-                if (!capitalInput.disabled && currentCapital > availableCapital) {
-                    capitalInput.value = availableCapital.toFixed(2);
-                    formatNumericInput(capitalInput);
+            } else if (totalAvailable) {
+                const availableGain = investorSelect.selectedOptions[0]?.dataset.availableGain
+                    ? Number(investorSelect.selectedOptions[0].dataset.availableGain)
+                    : 0;
+                totalAvailable.textContent = formatCopDisplay(availableGain);
+                if (totalGainInput) {
+                    const currentGain = parseCopValue(totalGainInput.value || '0');
+                    if (currentGain > availableGain) {
+                        totalGainInput.value = availableGain ? formatCopDisplay(availableGain) : '';
+                    }
                 }
             }
         };
 
-        investorSelect.addEventListener('change', updateInvestmentOptions);
-        investmentSelect.addEventListener('change', updateInvestmentDetails);
+        investorSelect.addEventListener('change', () => {
+            updateInvestmentOptions();
+            updateInvestmentDetails();
+        });
+        investmentSelect?.addEventListener('change', updateInvestmentDetails);
+        totalGainInput?.addEventListener('input', updateInvestmentDetails);
 
         updateInvestmentOptions();
+        updateInvestmentDetails();
     });
 };
 
@@ -386,7 +443,7 @@ const refreshTableTarget = async (url, targetSelector) => {
         attachContinuationToggles(currentTable);
         attachLiquidationFormHandlers(currentTable);
         attachProfitRuleHandlers(currentTable);
-        attachSelectSearch(currentTable);
+        enhanceSelects(currentTable);
     }
     const refreshTargets = currentTable?.dataset.refreshTarget
         ? currentTable.dataset.refreshTarget.split(',').map((target) => target.trim()).filter(Boolean)
@@ -404,7 +461,7 @@ const refreshTableTarget = async (url, targetSelector) => {
         attachContinuationToggles(currentTarget);
         attachLiquidationFormHandlers(currentTarget);
         attachProfitRuleHandlers(currentTarget);
-        attachSelectSearch(currentTarget);
+        enhanceSelects(currentTarget);
     });
 };
 
@@ -738,5 +795,5 @@ document.addEventListener('DOMContentLoaded', () => {
     attachContinuationToggles();
     attachLiquidationFormHandlers();
     attachProfitRuleHandlers();
-    attachSelectSearch();
+    enhanceSelects();
 });

@@ -123,8 +123,6 @@
                     </div>
                     <div>
                         <label class="text-xs text-gray-500">Código</label>
-                        <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar inversión"
-                            data-select-search data-select-target="#investor-continuation-create" />
                         <select name="continuation_id" id="investor-continuation-create" class="border rounded-md px-3 py-2 w-full" data-continuation-select>
                             <option value="">Nueva inversión (código automático)</option>
                             @foreach ($continuableInvestments as $continuable)
@@ -148,8 +146,6 @@
                 </div>
                 <div>
                     <label class="text-xs text-gray-500">Regla de rentabilidad</label>
-                    <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar regla"
-                        data-select-search data-select-target="#investor-profit-rule-create" />
                     <select name="profit_rule_id" id="investor-profit-rule-create" class="border rounded-md px-3 py-2 w-full">
                         <option value="">Regla activa</option>
                         @foreach ($profitRules as $rule)
@@ -218,8 +214,6 @@
                 </div>
                 <div>
                     <label class="text-xs text-gray-500">Regla de rentabilidad</label>
-                    <input type="text" class="w-full border rounded-md px-2 py-1 text-xs mb-2" placeholder="Buscar regla"
-                        data-select-search data-select-target="#investor-profit-rule-edit" />
                     <select name="profit_rule_id" id="investor-profit-rule-edit" class="border rounded-md px-3 py-2 w-full">
                         <option value="">Regla activa</option>
                         @foreach ($profitRules as $rule)
