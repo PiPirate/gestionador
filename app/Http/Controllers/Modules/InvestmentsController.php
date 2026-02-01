@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Modules;
 use App\Http\Controllers\Controller;
 use App\Models\Investment;
 use App\Models\Investor;
+use App\Models\ProfitRule;
 use App\Services\AuditLogger;
 use App\Services\InvestmentLifecycleService;
+use App\Services\ProfitRuleCalculator;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
@@ -34,20 +36,26 @@ class InvestmentsController extends Controller
 
         $investments = $query->orderByDesc('start_date')->get();
 
+        $avgReturn = $investments->isNotEmpty()
+            ? $investments->avg(fn (Investment $investment) => $investment->effectiveMonthlyRate())
+            : 0;
+
         $summary = [
             'total_cop' => Investment::where('status', 'activa')->sum('amount_cop'),
-            'avg_return' => round(Investment::avg('monthly_rate') ?? 0, 2),
+            'avg_return' => round($avgReturn, 2),
             'accumulated' => $investments->sum(fn (Investment $investment) => $investment->dailyGainCop()),
             'monthly_projection' => $investments->sum(fn (Investment $investment) => $investment->totalProjectedGainCop()),
         ];
 
+        $activeProfitRule = ProfitRule::where('is_active', true)->first();
+        $profitRules = ProfitRule::orderByDesc('created_at')->get();
         $investors = Investor::orderBy('name')->get();
         $continuableInvestments = Investment::with('investor')
             ->where('status', '!=', 'cerrada')
             ->orderByDesc('start_date')
             ->get();
 
-        return view('modules.investments.index', compact('investments', 'summary', 'investors', 'continuableInvestments'));
+        return view('modules.investments.index', compact('investments', 'summary', 'investors', 'continuableInvestments', 'activeProfitRule', 'profitRules'));
     }
 
     public function store(Request $request)
@@ -55,8 +63,8 @@ class InvestmentsController extends Controller
         $rules = [
             'investor_id' => 'required|exists:investors,id',
             'continuation_id' => 'nullable|exists:investments,id',
+            'profit_rule_id' => 'nullable|exists:profit_rules,id',
             'amount_cop' => 'required_without:continuation_id|numeric|min:0',
-            'monthly_rate' => 'required_without:continuation_id|numeric',
             'start_date' => 'required_without:continuation_id|date',
             'end_date' => 'nullable|date',
             'status' => 'required|in:pendiente,activa,cerrada',
@@ -98,11 +106,28 @@ class InvestmentsController extends Controller
 
             $code = $this->generateCode($investor);
 
+            $profitRule = !empty($data['profit_rule_id'])
+                ? ProfitRule::find($data['profit_rule_id'])
+                : ProfitRule::where('is_active', true)->first();
+            if (!$profitRule) {
+                return back()->withErrors(['profit_rule' => 'No hay una regla de rentabilidad activa.']);
+            }
+
+            $monthlyProfit = ProfitRuleCalculator::calcMonthlyProfit($investment->amount_cop, $profitRule->tiers_json ?? []);
+            $monthReference = $nextEndDate ? Carbon::parse($nextEndDate) : Carbon::parse($nextStartDate);
+            $monthDays = $monthReference->daysInMonth;
+            $dailyInterest = $monthDays > 0 ? $monthlyProfit / $monthDays : 0;
+            $effectiveRate = $investment->amount_cop > 0 ? ($monthlyProfit / $investment->amount_cop) * 100 : 0;
+
             $newInvestment = Investment::create([
                 'investor_id' => $investor->id,
+                'profit_rule_id' => $profitRule->id,
                 'code' => $code,
                 'amount_cop' => $investment->amount_cop,
-                'monthly_rate' => $investment->monthly_rate,
+                'monthly_rate' => $effectiveRate,
+                'tiers_snapshot' => $profitRule->tiers_json,
+                'monthly_profit_snapshot' => $monthlyProfit,
+                'daily_interest_snapshot' => $dailyInterest,
                 'start_date' => $nextStartDate?->toDateString(),
                 'end_date' => $nextEndDate,
                 'status' => 'activa',
@@ -118,12 +143,28 @@ class InvestmentsController extends Controller
 
         $investor = Investor::findOrFail($data['investor_id']);
         $code = $this->generateCode($investor);
+        $profitRule = !empty($data['profit_rule_id'])
+            ? ProfitRule::find($data['profit_rule_id'])
+            : ProfitRule::where('is_active', true)->first();
+        if (!$profitRule) {
+            return back()->withErrors(['profit_rule' => 'No hay una regla de rentabilidad activa.']);
+        }
+
+        $monthlyProfit = ProfitRuleCalculator::calcMonthlyProfit($data['amount_cop'], $profitRule->tiers_json ?? []);
+        $monthReference = $data['end_date'] ? Carbon::parse($data['end_date']) : Carbon::parse($data['start_date']);
+        $monthDays = $monthReference->daysInMonth;
+        $dailyInterest = $monthDays > 0 ? $monthlyProfit / $monthDays : 0;
+        $effectiveRate = $data['amount_cop'] > 0 ? ($monthlyProfit / $data['amount_cop']) * 100 : 0;
 
         $investment = Investment::create([
             'investor_id' => $investor->id,
+            'profit_rule_id' => $profitRule->id,
             'code' => $code,
             'amount_cop' => $data['amount_cop'],
-            'monthly_rate' => $data['monthly_rate'],
+            'monthly_rate' => $effectiveRate,
+            'tiers_snapshot' => $profitRule->tiers_json,
+            'monthly_profit_snapshot' => $monthlyProfit,
+            'daily_interest_snapshot' => $dailyInterest,
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'] ?? null,
             'status' => $data['status'],
@@ -138,14 +179,33 @@ class InvestmentsController extends Controller
     {
         $data = $request->validate([
             'investor_id' => 'required|exists:investors,id',
+            'profit_rule_id' => 'nullable|exists:profit_rules,id',
             'amount_cop' => 'required|numeric|min:0',
-            'monthly_rate' => 'required|numeric',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'status' => 'required|in:pendiente,activa,cerrada',
         ]);
 
         $investment->fill($data);
+
+        $profitRule = $investment->profit_rule_id
+            ? ProfitRule::find($investment->profit_rule_id)
+            : null;
+
+        $tiers = $profitRule?->tiers_json ?? $investment->tiers_snapshot;
+
+        if ($tiers && $investment->amount_cop > 0) {
+            $monthlyProfit = ProfitRuleCalculator::calcMonthlyProfit($investment->amount_cop, $tiers);
+            $monthReference = $investment->end_date ?: $investment->start_date;
+            $monthDays = $monthReference ? $monthReference->daysInMonth : 0;
+            $dailyInterest = $monthDays > 0 ? $monthlyProfit / $monthDays : 0;
+            $effectiveRate = $investment->amount_cop > 0 ? ($monthlyProfit / $investment->amount_cop) * 100 : 0;
+
+            $investment->monthly_rate = $effectiveRate;
+            $investment->tiers_snapshot = $tiers;
+            $investment->monthly_profit_snapshot = $monthlyProfit;
+            $investment->daily_interest_snapshot = $dailyInterest;
+        }
 
         if ($investment->status === 'cerrada' && !$investment->closed_at) {
             $investment->closed_at = Carbon::now();

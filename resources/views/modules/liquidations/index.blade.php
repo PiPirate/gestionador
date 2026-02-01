@@ -105,42 +105,19 @@
                     <select name="investor_id" class="border rounded-md px-3 py-2 w-full" data-liquidation-investor required>
                         <option value="">Seleccione</option>
                         @foreach ($investors as $investor)
-                            <option value="{{ $investor->id }}">{{ $investor->name }} ({{ $investor->monthly_rate }}%)</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="text-xs text-gray-600">Inversión</label>
-                    <select name="investment_id" class="border rounded-md px-3 py-2 w-full" data-liquidation-investment required>
-                        <option value="">Seleccione</option>
-                        @foreach ($investments as $investment)
-                            <option
-                                value="{{ $investment->id }}"
-                                data-investor-id="{{ $investment->investor_id }}"
-                                data-available-gain="{{ $investment->availableGainCop() }}"
-                                data-available-capital="{{ $investment->availableCapitalCop() }}">
-                                {{ $investment->code }} · {{ $investment->investor?->name }} · {{ \App\Support\Currency::format($investment->amount_cop, 'cop') }}
+                            <option value="{{ $investor->id }}" data-available-gain="{{ $availableGainsByInvestor[$investor->id] ?? 0 }}">
+                                {{ $investor->name }} ({{ $investor->monthly_rate }}%)
                             </option>
                         @endforeach
                     </select>
                 </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
                 <div>
                     <div class="flex items-center justify-between">
-                        <label class="text-xs text-gray-600">Ganancias disponibles</label>
-                        <span class="text-xs text-gray-500" data-liquidation-available-gain>0</span>
+                        <label class="text-xs text-gray-600">Intereses disponibles</label>
+                        <span class="text-xs text-gray-500" data-liquidation-available-total>0</span>
                     </div>
-                    <x-text-input name="withdraw_gain_cop" type="text" class="w-full" data-liquidation-gain data-format="cop" />
-                    <p class="text-[11px] text-gray-400 mt-1">Solo se pueden retirar ganancias generadas.</p>
-                </div>
-                <div>
-                    <div class="flex items-center justify-between">
-                        <label class="text-xs text-gray-600">Capital disponible</label>
-                        <span class="text-xs text-gray-500" data-liquidation-available-capital>0</span>
-                    </div>
-                    <x-text-input name="withdraw_capital_cop" type="text" class="w-full" data-liquidation-capital data-format="cop" />
-                    <p class="text-[11px] text-gray-400 mt-1">Puedes retirar una parte o todo el capital disponible.</p>
+                    <x-text-input name="withdraw_gain_cop" type="text" class="w-full" data-liquidation-total-gain data-format="cop" />
+                    <p class="text-[11px] text-gray-400 mt-1">Retiro total sobre intereses generados.</p>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-3">

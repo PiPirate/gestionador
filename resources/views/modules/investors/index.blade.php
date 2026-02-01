@@ -7,10 +7,6 @@
                 <p class="text-sm text-gray-600 mt-1">Gestión de inversores y sus inversiones</p>
             </div>
             <div class="flex items-center gap-3">
-                <select class="border rounded-md px-3 py-2 text-sm" data-table-sort data-sort-column="0">
-                    <option value="asc">Ordenar A → Z</option>
-                    <option value="desc">Ordenar Z → A</option>
-                </select>
                 <button data-modal-target="investor-create"
                     class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-green-700">
                     <x-heroicon-o-plus class="w-5 h-5" />
@@ -66,7 +62,7 @@
                                 class="inline-flex items-center px-2 py-1 text-xs rounded-full {{ strtolower($investor->status) === 'pendiente' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700' }}">{{ $investor->status }}</span>
                             <button data-modal-target="investor-edit" data-investor='@json($investor)'
                                 class="text-blue-600 text-xs">Editar</button>
-                            <form method="POST" action="{{ route('investors.destroy', $investor) }}" class="inline">
+                            <form method="POST" action="{{ route('investors.destroy', $investor) }}" class="inline" data-table-update data-table-target="#investors-table">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-600 text-xs"
